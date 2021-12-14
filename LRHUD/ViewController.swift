@@ -13,7 +13,7 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         LRHUD.set(minimumDismissTimeInterval: 20)
         LRHUD.set(maximumDismissTimeInterval: 60)
-        LRHUD.set(defaultStyle: .dark)
+        LRHUD.set(style: .dark)
         LRHUD.set(hudForegroundColor: .white)
         LRHUD.set(hudBackgroundColor: .hex(0x162926, alpha: 0.77))
         LRHUD.set(cornerRadius: 8)
@@ -21,7 +21,7 @@ class ViewController: UIViewController {
         LRHUD.set(font: .systemFont(ofSize: 14))
         LRHUD.set(minimumSize: .init(width: 60, height: 60))
 //        LRHUD.register(indefiniteAnimatedViewClass: UIActivityIndicatorView.self)
-//        LRHUD.set(defaultMaskType: .gradient)
+//        LRHUD.set(maskStyle: .gradient)
         print("!")
         view.backgroundColor = .gray
 //        LRHUD.sharedView.re

@@ -33,12 +33,10 @@ public class LRHUD: UIControl {
     static let horizontalSpacing: CGFloat = 12
     
     static let labelSpacing: CGFloat = 8
+
+    var style: Style = .auto
     
-    private static let statusUserInfoKey = "LRHUD.statusUserInfoKey"
-    
-    var defaultStyle: Style = .auto
-    
-    var defaultMaskType: MaskType = .clear
+    var maskStyle: MaskStyle = .clear
 
     var containerView: UIView?
     
@@ -301,7 +299,7 @@ public class LRHUD: UIControl {
     }
     
     func updateBackground() {
-        if defaultMaskType == .gradient {
+        if maskStyle == .gradient {
             if backgroundRadialGradientLayer.superlayer == nil {
                 layer.insertSublayer(backgroundRadialGradientLayer, at: 0)
             }
@@ -315,9 +313,9 @@ public class LRHUD: UIControl {
             if backgroundRadialGradientLayer.superlayer != nil {
                 backgroundRadialGradientLayer.removeFromSuperlayer()
             }
-            if defaultMaskType == .black {
+            if maskStyle == .black {
                 backgroundColor = .init(white: 0, alpha: 0.4)
-            } else if defaultMaskType == .custom {
+            } else if maskStyle == .custom {
                 backgroundColor = backgroundLayerColor
             } else {
                 backgroundColor = .clear
@@ -346,7 +344,7 @@ private extension LRHUD {
         guard let _text = statusLabel.text else {
             return [:]
         }
-        return [LRHUD.statusUserInfoKey: _text]
+        return ["LRHUD.statusUserInfoKey": _text]
     }
 }
 
@@ -497,7 +495,7 @@ extension LRHUD {
     func fadeIn(duration: TimeInterval = 0) {
         updateHUDFrame()
         updatePosition()
-        if defaultMaskType == .none {
+        if maskStyle == .none {
             accessibilityLabel = statusLabel.text ?? NSLocalizedString("Loading", comment: "")
             isAccessibilityElement = true
         } else {
@@ -688,11 +686,11 @@ private extension LRHUD {
     }
     
     var effectStyle: UIBlurEffect.Style {
-        if defaultStyle == .light {
+        if style == .light {
             return .light
-        } else if defaultStyle == .dark {
+        } else if style == .dark {
             return .dark
-        } else if defaultStyle == .auto {
+        } else if style == .auto {
             if #available(iOS 13.0, *) {
                 if traitCollection.userInterfaceStyle == .light {
                     return .light
@@ -705,11 +703,11 @@ private extension LRHUD {
     }
     
     var foregroundColorForStyle: UIColor {
-        if defaultStyle == .light {
+        if style == .light {
             return .black
-        } else if defaultStyle == .dark {
+        } else if style == .dark {
             return .white
-        } else if defaultStyle == .auto {
+        } else if style == .auto {
             if #available(iOS 13.0, *) {
                 if traitCollection.userInterfaceStyle == .light {
                     return .black
@@ -722,11 +720,11 @@ private extension LRHUD {
     }
     
     var backgroundColorForStyle: UIColor {
-        if defaultStyle == .light {
+        if style == .light {
             return .white
-        } else if defaultStyle == .dark {
+        } else if style == .dark {
             return .black
-        } else if defaultStyle == .auto {
+        } else if style == .auto {
             if #available(iOS 13.0, *) {
                 if traitCollection.userInterfaceStyle == .light {
                     return .white
@@ -739,7 +737,7 @@ private extension LRHUD {
     }
     
     func fadeInEffects() {
-        if defaultStyle != .custom {
+        if style != .custom {
             hudView.effect = UIBlurEffect(style: effectStyle)
             hudView.backgroundColor = .clear
         } else {
@@ -754,7 +752,7 @@ private extension LRHUD {
     }
 
     func fadeOutEffects() {
-        if defaultStyle != .custom {
+        if style != .custom {
             hudView.effect = nil
         }
         hudView.backgroundColor = .clear
@@ -781,12 +779,12 @@ public extension LRHUD {
         sharedView.set(status: status)
     }
     
-    static func set(defaultStyle: Style) {
-        sharedView.defaultStyle = defaultStyle
+    static func set(style: Style) {
+        sharedView.style = style
     }
     
-    static func set(defaultMaskType: MaskType) {
-        sharedView.defaultMaskType = defaultMaskType
+    static func set(maskStyle: MaskStyle) {
+        sharedView.maskStyle = maskStyle
     }
     
     static func register(indefiniteAnimatedViewClass: IndefiniteAnimated.Type) {
@@ -839,12 +837,12 @@ public extension LRHUD {
     
     static func set(hudForegroundColor: UIColor) {
         sharedView.hudForegroundColor = hudForegroundColor
-        set(defaultStyle: .custom)
+        set(style: .custom)
     }
     
     static func set(hudBackgroundColor: UIColor) {
         sharedView.hudBackgroundColor = hudBackgroundColor
-        set(defaultStyle: .custom)
+        set(style: .custom)
     }
     
     static func set(backgroundColor: UIColor) {
@@ -898,37 +896,37 @@ public extension LRHUD {
 
 //MARK: - Show/Dismiss
 public extension LRHUD {
-    static func show(status: String? = nil, interaction: Bool = true, maskType: MaskType? = nil) {
-        show(progress: LRHUD.undefinedProgress, status: status, interaction: interaction, maskType: maskType)
+    static func show(status: String? = nil, interaction: Bool = true, maskStyle: MaskStyle? = nil) {
+        show(progress: LRHUD.undefinedProgress, status: status, interaction: interaction, maskStyle: maskStyle)
     }
 
-    static func show(progress: Float, status: String? = nil, interaction: Bool = true, maskType: MaskType? = nil) {
-        let existingMaskType = sharedView.defaultMaskType
-        set(defaultMaskType: maskType ?? existingMaskType)
+    static func show(progress: Float, status: String? = nil, interaction: Bool = true, maskStyle: MaskStyle? = nil) {
+        let existingMaskStyle = sharedView.maskStyle
+        set(maskStyle: maskStyle ?? existingMaskStyle)
         sharedView.show(progress: progress, status: status, interaction: interaction)
-        set(defaultMaskType: existingMaskType)
+        set(maskStyle: existingMaskStyle)
     }
 
-    static func show(info: String, interaction: Bool = true, maskType: MaskType? = nil) {
-        show(image: sharedView.imageAnimatedView.image(forType: .info), status: info, interaction: interaction, maskType: maskType)
+    static func show(info: String, interaction: Bool = true, maskStyle: MaskStyle? = nil) {
+        show(image: sharedView.imageAnimatedView.image(forType: .info), status: info, interaction: interaction, maskStyle: maskStyle)
         sharedView.hapticGenerator?.notificationOccurred(.warning)
     }
 
-    static func show(success: String, interaction: Bool = true, maskType: MaskType? = nil) {
-        show(image: sharedView.imageAnimatedView.image(forType: .success), status: success, interaction: interaction, maskType: maskType)
+    static func show(success: String, interaction: Bool = true, maskStyle: MaskStyle? = nil) {
+        show(image: sharedView.imageAnimatedView.image(forType: .success), status: success, interaction: interaction, maskStyle: maskStyle)
         sharedView.hapticGenerator?.notificationOccurred(.success)
     }
 
-    static func show(error: String, interaction: Bool = true, maskType: MaskType? = nil) {
-        show(image: sharedView.imageAnimatedView.image(forType: .error), status: error, interaction: interaction, maskType: maskType)
+    static func show(error: String, interaction: Bool = true, maskStyle: MaskStyle? = nil) {
+        show(image: sharedView.imageAnimatedView.image(forType: .error), status: error, interaction: interaction, maskStyle: maskStyle)
         sharedView.hapticGenerator?.notificationOccurred(.error)
     }
 
-    static func show(image: UIImage, status: String, interaction: Bool = true, maskType: MaskType? = nil) {
-        let existingMaskType = sharedView.defaultMaskType
-        set(defaultMaskType: maskType ?? existingMaskType)
+    static func show(image: UIImage, status: String, interaction: Bool = true, maskStyle: MaskStyle? = nil) {
+        let existingMaskStyle = sharedView.maskStyle
+        set(maskStyle: maskStyle ?? existingMaskStyle)
         sharedView.show(image: image, status: status, duration: displayDuration(for: status), interaction: interaction)
-        set(defaultMaskType: existingMaskType)
+        set(maskStyle: existingMaskStyle)
     }
 
     static func dismiss(delay: TimeInterval = 0, completion: (() -> Void)? = nil) {
@@ -984,7 +982,7 @@ public extension LRHUD {
         case custom
     }
     
-    enum MaskType {
+    enum MaskStyle {
         case clear
         case black
         case gradient
