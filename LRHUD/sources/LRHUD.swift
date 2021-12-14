@@ -36,34 +36,6 @@ public class LRHUD: UIView {
     
     private static let statusUserInfoKey = "LRHUD.statusUserInfoKey"
     
-    private static var currentWindow: UIWindow? {
-        if #available(iOS 13.0, *) {
-            let scene = UIApplication.shared.connectedScenes.first { $0.activationState == .foregroundActive }
-            return (scene as? UIWindowScene)?.windows.first
-        } else {
-            return UIApplication.shared.keyWindow
-        }
-    }
-    
-    private static var allWindows: [UIWindow] {
-        if #available(iOS 13.0, *) {
-//            UIApplication.shared.connectedScenes.map { ($0 as? UIWindowScene)?.windows ?? [] }
-//            let scene = UIApplication.shared.connectedScenes.first { $0.activationState == .foregroundActive }
-            return UIApplication.shared.connectedScenes.flatMap { ($0 as? UIWindowScene)?.windows ?? [] }
-        } else {
-            return UIApplication.shared.windows
-        }
-    }
-    
-    private static var statusBarFrame: CGRect {
-        if #available(iOS 13.0, *) {
-            let scene = UIApplication.shared.connectedScenes.first { $0.activationState == .foregroundActive }
-            return (scene as? UIWindowScene)?.statusBarManager?.statusBarFrame ?? .zero
-        } else {
-            return UIApplication.shared.statusBarFrame
-        }
-    }
-    
     var defaultStyle: Style = .light
     
     var defaultMaskType: MaskType = .none
@@ -156,17 +128,17 @@ public class LRHUD: UIView {
     
     private lazy var _imageView = UIImageView()
     
-    private var _indefiniteAnimatedView: UIView?
+    private var _indefiniteAnimatedView: IndefiniteAnimated?
     
     private var _ringView: ProgressAnimatedView?
     
     private var _backgroundRingView: ProgressAnimatedView?
     
+    private lazy var _hapticGenerator = UINotificationFeedbackGenerator()
+    
     private var progress: Float = 0
     
     private var activityCount: UInt = 0
-    
-    private lazy var _hapticGenerator = UINotificationFeedbackGenerator()
     
     static let sharedView: LRHUD = .init(frame: LRHUD.currentWindow?.bounds ?? UIScreen.main.bounds)
     
@@ -576,7 +548,7 @@ extension LRHUD {
 
 //MARK: - Ring progress animation
 private extension LRHUD {
-    var indefiniteAnimatedView: UIView {
+    var indefiniteAnimatedView: IndefiniteAnimated {
         if defaultAnimationType == .flat {
             if let __indefiniteAnimatedView = _indefiniteAnimatedView, !(__indefiniteAnimatedView is IndefiniteAnimatedView) {
                 _indefiniteAnimatedView?.removeFromSuperview()
@@ -710,6 +682,27 @@ private extension LRHUD {
 
 //MARK: - Helper
 private extension LRHUD {
+    private static var currentWindow: UIWindow? {
+        return allWindows.first { $0.isKeyWindow } ?? allWindows.first
+    }
+    
+    private static var allWindows: [UIWindow] {
+        if #available(iOS 13.0, *) {
+            return UIApplication.shared.connectedScenes.flatMap { ($0 as? UIWindowScene)?.windows ?? [] }
+        } else {
+            return UIApplication.shared.windows
+        }
+    }
+    
+    private static var statusBarFrame: CGRect {
+        if #available(iOS 13.0, *) {
+            let scene = UIApplication.shared.connectedScenes.first { $0.activationState == .foregroundActive }
+            return (scene as? UIWindowScene)?.statusBarManager?.statusBarFrame ?? .zero
+        } else {
+            return UIApplication.shared.statusBarFrame
+        }
+    }
+    
     var visibleKeyboardHeight: CGFloat {
         guard let keyboardWindow = LRHUD.allWindows.first else {
             return 0
@@ -752,6 +745,36 @@ private extension LRHUD {
         return nil
     }
     
+    var foregroundColorForStyle: UIColor {
+        if defaultStyle == .light {
+            return .black
+        } else if defaultStyle == .dark {
+            return .white
+        } else if defaultStyle == .auto {
+            if overrideUserInterfaceStyle == .light {
+                return .black
+            } else if overrideUserInterfaceStyle == .dark {
+                return .white
+            }
+        }
+        return foregroundColor
+    }
+    
+    var backgroundColorForStyle: UIColor {
+        if defaultStyle == .light {
+            return .white
+        } else if defaultStyle == .dark {
+            return .black
+        } else if defaultStyle == .auto {
+            if overrideUserInterfaceStyle == .light {
+                return .white
+            } else if overrideUserInterfaceStyle == .dark {
+                return .black
+            }
+        }
+        return backgroundColor ?? .clear
+    }
+    
     func fadeInEffects() {
         if defaultStyle != .custom {
             hudView.effect = UIBlurEffect(style: defaultStyle == .dark ? .dark : .light)
@@ -787,41 +810,6 @@ private extension LRHUD {
             return nil
         }
     }
-}
-
-//MARK: - Setters
-private extension LRHUD {
-    var foregroundColorForStyle: UIColor {
-        return .red
-        if defaultStyle == .light {
-            return .black
-        } else if defaultStyle == .dark {
-            return .white
-        } else if defaultStyle == .auto {
-            if overrideUserInterfaceStyle == .light {
-                return .black
-            } else if overrideUserInterfaceStyle == .dark {
-                return .white
-            }
-        }
-        return foregroundColor
-    }
-    
-    var backgroundColorForStyle: UIColor {
-        if defaultStyle == .light {
-            return .white
-        } else if defaultStyle == .dark {
-            return .black
-        } else if defaultStyle == .auto {
-            if overrideUserInterfaceStyle == .light {
-                return .white
-            } else if overrideUserInterfaceStyle == .dark {
-                return .black
-            }
-        }
-        return backgroundColor ?? .clear
-    }
-    
 }
 
 //MARK: - Static setters
@@ -993,6 +981,7 @@ public extension LRHUD {
     }
 }
 
+//MARK: -
 public extension LRHUD {
     enum Style {
         case light
@@ -1015,6 +1004,16 @@ public extension LRHUD {
     }
 }
 
+public protocol IndefiniteAnimated where Self: UIView {
+    func startAnimating()
+
+    func stopAnimating()
+}
+
+public protocol ProgressAnimated where Self: UIView {
+    
+}
+
 private extension DispatchWorkItem {
     static func after(timeInterval: TimeInterval, block: @escaping () -> Void) -> DispatchWorkItem {
         let result = DispatchWorkItem(block: block)
@@ -1022,3 +1021,5 @@ private extension DispatchWorkItem {
         return result
     }
 }
+
+extension UIActivityIndicatorView: IndefiniteAnimated {}

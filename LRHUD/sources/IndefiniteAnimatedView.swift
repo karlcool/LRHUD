@@ -132,3 +132,13 @@ class IndefiniteAnimatedView: UIView {
         _indefiniteAnimatedLayer!.mask?.add(animationGroup, forKey: "progress")
     }
 }
+
+extension IndefiniteAnimatedView: IndefiniteAnimated {
+    func startAnimating() {
+        
+    }
+    
+    func stopAnimating() {
+        
+    } 
+}
