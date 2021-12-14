@@ -67,9 +67,7 @@ public class LRHUD: UIView {
     var successImage: UIImage = .init(named: "success")!
     
     var errorImage: UIImage = .init(named: "error")!
-    
-    var viewForExtension: UIView?
-    
+
     var graceTimeInterval: TimeInterval = 0
     
     var minimumDismissTimeInterval: TimeInterval = 3
@@ -238,11 +236,7 @@ public class LRHUD: UIView {
             if let _containerView = containerView {
                 _containerView.addSubview(controlView)
             } else {
-                #if SV_APP_EXTENSIONS
-                viewForExtension?.addSubview(controlView)
-                #else
                 frontWindow?.addSubview(controlView)
-                #endif
             }
         } else {
             controlView.superview?.bringSubviewToFront(controlView)
@@ -285,11 +279,7 @@ private extension LRHUD {
         var keyboardHeight: CGFloat = 0
         var animationDuration: CGFloat = 0
         
-        if let _viewForExtension = viewForExtension {
-            frame = _viewForExtension.frame
-        } else {
-            frame = LRHUD.currentWindow?.bounds ?? UIScreen.main.bounds
-        }
+        frame = LRHUD.currentWindow?.bounds ?? UIScreen.main.bounds
         #if os(iOS)
         let orientation: UIInterfaceOrientation = frame.width > frame.height ? .landscapeLeft : .portrait
         #else
@@ -311,21 +301,12 @@ private extension LRHUD {
         let orientationFrame = bounds
         
         #if os(iOS)
-        #if SV_APP_EXTENSIONS
-        let statusBarFrame: CGRect = .zero
-        #else
         let statusBarFrame: CGRect = LRHUD.statusBarFrame
-        #endif
-        #else
-        let statusBarFrame: CGRect = .zero
-        #endif
-        
-        #if os(iOS)
         updateMotionEffect(forOrientation: orientation)
         #else
+        let statusBarFrame: CGRect = .zero
         updateMotionEffect(xMotionEffectType: .tiltAlongHorizontalAxis, yMotionEffectType: .tiltAlongHorizontalAxis)
         #endif
-        
         var activeHeight = orientationFrame.height
         if keyboardHeight > 0.001 {
             activeHeight += statusBarFrame.height * 2
@@ -865,11 +846,7 @@ public extension LRHUD {
     static func set(errorImage: UIImage) {
         sharedView.errorImage = errorImage
     }
-    
-    static func set(viewForExtension: UIView) {
-        sharedView.viewForExtension = viewForExtension
-    }
-    
+
     static func set(graceTimeInterval: TimeInterval) {
         sharedView.graceTimeInterval = graceTimeInterval
     }
