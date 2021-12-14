@@ -44,7 +44,7 @@ public class LRHUD: UIView {
     
     var containerView: UIView?
     
-    var minimumSize: CGSize = .zero
+    var minimumSize: CGSize = .init(width: 60, height: 60)
     
     var ringThickness: CGFloat = 2
     
@@ -130,10 +130,8 @@ public class LRHUD: UIView {
     
     private var _indefiniteAnimatedView: IndefiniteAnimated?
     
-    private var _ringView: ProgressAnimatedView?
-    
-    private var _backgroundRingView: ProgressAnimatedView?
-    
+    private var _progressAnimatedView: ProgressAnimated?
+
     private lazy var _hapticGenerator = UINotificationFeedbackGenerator()
     
     private var progress: Float = 0
@@ -149,8 +147,7 @@ public class LRHUD: UIView {
         imageView.alpha = backgroundView.alpha
         statusLabel.alpha = backgroundView.alpha
         indefiniteAnimatedView.alpha = backgroundView.alpha
-        backgroundRingView.alpha = backgroundView.alpha
-        ringView.alpha = backgroundView.alpha
+        progressAnimatedView.alpha = backgroundView.alpha
         isUserInteractionEnabled = false
         backgroundColor = .white
         accessibilityIdentifier = "LRHUD"
@@ -200,8 +197,7 @@ public class LRHUD: UIView {
         }
         indefiniteAnimatedView.center = .init(x: hudView.bounds.midX, y: centerY)
         if progress != LRHUD.undefinedProgress {
-            backgroundRingView.center = .init(x: hudView.bounds.midX, y: centerY)
-            ringView.center = backgroundRingView.center
+            progressAnimatedView.center = .init(x: hudView.bounds.midX, y: centerY)
         }
         imageView.center = .init(x: hudView.bounds.midX, y: centerY)
         if imageUsed || progressUsed {
@@ -407,15 +403,12 @@ extension LRHUD {
         
         if progress >= 0 {
             cancelIndefiniteAnimatedViewAnimation()
-            if ringView.superview == nil {
-                hudView.contentView.addSubview(ringView)
-            }
-            if backgroundRingView.superview == nil {
-                hudView.contentView.addSubview(backgroundRingView)
+            if progressAnimatedView.superview == nil {
+                hudView.contentView.addSubview(progressAnimatedView)
             }
             CATransaction.begin()
             CATransaction.setDisableActions(true)
-            ringView.strokeEnd = CGFloat(progress)
+            progressAnimatedView.set(progress: .init(progress))
             CATransaction.commit()
             if progress == 0 {
                 activityCount += 1
@@ -572,36 +565,24 @@ private extension LRHUD {
         return _indefiniteAnimatedView!
     }
     
-    var ringView: ProgressAnimatedView {
-        if _ringView == nil {
-            _ringView = ProgressAnimatedView()
+    var progressAnimatedView: ProgressAnimated {
+        if _progressAnimatedView == nil {
+            _progressAnimatedView = ProgressAnimatedView()
         }
-        _ringView!.strokeColor = foregroundColorForStyle
-        _ringView!.strokeThickness = ringThickness
-        _ringView!.radius = statusLabel.text != nil ? ringRadius : ringNoTextRadius
-        return _ringView!
+        _progressAnimatedView!.set(color: foregroundColorForStyle)
+        _progressAnimatedView!.set(thickness: ringThickness)
+        _progressAnimatedView!.set(radius: statusLabel.text != nil ? ringRadius : ringNoTextRadius)
+        return _progressAnimatedView!
     }
-    
-    var backgroundRingView: ProgressAnimatedView {
-        if _backgroundRingView == nil {
-            _backgroundRingView = ProgressAnimatedView()
-            _backgroundRingView!.strokeEnd = 1
-        }
-        _backgroundRingView!.strokeColor = foregroundColorForStyle.withAlphaComponent(0.1)
-        _backgroundRingView!.strokeThickness = ringThickness
-        _backgroundRingView!.radius = statusLabel.text != nil ? ringRadius : ringNoTextRadius
-        return _backgroundRingView!
-    }
-    
+
     func cancelRingLayerAnimation() {
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         hudView.layer.removeAllAnimations()
-        ringView.strokeEnd = 0
+        progressAnimatedView.set(progress: 0)
         CATransaction.commit()
         
-        ringView.removeFromSuperview()
-        backgroundRingView.removeFromSuperview()
+        progressAnimatedView.removeFromSuperview()
     }
     
     func cancelIndefiniteAnimatedViewAnimation() {
@@ -784,8 +765,7 @@ private extension LRHUD {
         imageView.alpha = backgroundView.alpha
         statusLabel.alpha = backgroundView.alpha
         indefiniteAnimatedView.alpha = backgroundView.alpha
-        backgroundRingView.alpha = backgroundView.alpha
-        ringView.alpha = backgroundView.alpha
+        progressAnimatedView.alpha = backgroundView.alpha
     }
 
     func fadeOutEffects() {
@@ -797,8 +777,7 @@ private extension LRHUD {
         imageView.alpha = backgroundView.alpha
         statusLabel.alpha = backgroundView.alpha
         indefiniteAnimatedView.alpha = backgroundView.alpha
-        backgroundRingView.alpha = backgroundView.alpha
-        ringView.alpha = backgroundView.alpha
+        progressAnimatedView.alpha = backgroundView.alpha
     }
     
     var hapticGenerator: UINotificationFeedbackGenerator? {
