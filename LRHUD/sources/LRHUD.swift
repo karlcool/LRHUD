@@ -36,7 +36,7 @@ public class LRHUD: UIControl {
     
     private static let statusUserInfoKey = "LRHUD.statusUserInfoKey"
     
-    var defaultStyle: Style = .light
+    var defaultStyle: Style = .auto
     
     var defaultMaskType: MaskType = .clear
 
@@ -141,6 +141,22 @@ public class LRHUD: UIControl {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    public override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        guard #available(iOS 13.0, *) else {
+            return
+        }
+        guard traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) else {
+            return
+        }
+        //just need call it
+        _ = indefiniteAnimatedView
+        _ = progressAnimatedView
+        _ = imageAnimatedView
+        _ = statusLabel
+        fadeInEffects()
     }
     
     func set(status: String) {
@@ -314,7 +330,9 @@ public class LRHUD: UIControl {
 private extension LRHUD {
     func registerNotifications() {
         #if os(iOS)
-        NotificationCenter.default.addObserver(self, selector: #selector(updatePosition(_:)), name: UIScene.didActivateNotification, object: nil)
+        if #available(iOS 13.0, *) {
+            NotificationCenter.default.addObserver(self, selector: #selector(updatePosition(_:)), name: UIScene.didActivateNotification, object: nil)
+        }
         NotificationCenter.default.addObserver(self, selector: #selector(updatePosition(_:)), name: UIApplication.keyboardWillHideNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(updatePosition(_:)), name: UIApplication.keyboardDidHideNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(updatePosition(_:)), name: UIApplication.keyboardWillShowNotification, object: nil)
@@ -430,7 +448,6 @@ extension LRHUD {
             if image.renderingMode != .alwaysTemplate {
                 imageAnimatedView.image = image.withRenderingMode(.alwaysTemplate)
             }
-            imageAnimatedView.tintColor = foregroundColorForStyle
         } else {
             imageAnimatedView.image = image
         }
@@ -555,6 +572,7 @@ private extension LRHUD {
             _imageAnimatedView!.setup()
             hudView.contentView.addSubview(_imageAnimatedView!)
         }
+        _imageAnimatedView!.tintColor = foregroundColorForStyle
         return _imageAnimatedView!
     }
     
@@ -669,16 +687,35 @@ private extension LRHUD {
         return nil
     }
     
+    var effectStyle: UIBlurEffect.Style {
+        if defaultStyle == .light {
+            return .light
+        } else if defaultStyle == .dark {
+            return .dark
+        } else if defaultStyle == .auto {
+            if #available(iOS 13.0, *) {
+                if traitCollection.userInterfaceStyle == .light {
+                    return .light
+                } else if traitCollection.userInterfaceStyle == .dark {
+                    return .dark
+                }
+            }
+        }
+        return .regular
+    }
+    
     var foregroundColorForStyle: UIColor {
         if defaultStyle == .light {
             return .black
         } else if defaultStyle == .dark {
             return .white
         } else if defaultStyle == .auto {
-            if overrideUserInterfaceStyle == .light {
-                return .black
-            } else if overrideUserInterfaceStyle == .dark {
-                return .white
+            if #available(iOS 13.0, *) {
+                if traitCollection.userInterfaceStyle == .light {
+                    return .black
+                } else if traitCollection.userInterfaceStyle == .dark {
+                    return .white
+                }
             }
         }
         return hudForegroundColor
@@ -690,10 +727,12 @@ private extension LRHUD {
         } else if defaultStyle == .dark {
             return .black
         } else if defaultStyle == .auto {
-            if overrideUserInterfaceStyle == .light {
-                return .white
-            } else if overrideUserInterfaceStyle == .dark {
-                return .black
+            if #available(iOS 13.0, *) {
+                if traitCollection.userInterfaceStyle == .light {
+                    return .white
+                } else if traitCollection.userInterfaceStyle == .dark {
+                    return .black
+                }
             }
         }
         return hudBackgroundColor
@@ -701,9 +740,10 @@ private extension LRHUD {
     
     func fadeInEffects() {
         if defaultStyle != .custom {
-            hudView.effect = UIBlurEffect(style: defaultStyle == .dark ? .dark : .light)
-            hudView.backgroundColor = backgroundColorForStyle.withAlphaComponent(0.6)
+            hudView.effect = UIBlurEffect(style: effectStyle)
+            hudView.backgroundColor = .clear
         } else {
+            hudView.effect = nil
             hudView.backgroundColor = backgroundColorForStyle
         }
         alpha = 1
@@ -969,7 +1009,11 @@ private extension DispatchWorkItem {
 
 extension UIActivityIndicatorView: IndefiniteAnimated {
     public func setup() {
-        style = .large
+        if #available(iOS 13.0, *) {
+            style = .large
+        } else {
+            style = .gray
+        }
     }
     
     public func set(color: UIColor) {

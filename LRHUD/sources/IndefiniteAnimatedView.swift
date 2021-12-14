@@ -11,6 +11,7 @@ class IndefiniteAnimatedView: UIView {
     var strokeColor: UIColor = .clear {
         didSet {
             indefiniteAnimatedLayer.strokeColor = strokeColor.cgColor
+            indefiniteAnimatedLayer.setNeedsLayout()
         }
     }
     
