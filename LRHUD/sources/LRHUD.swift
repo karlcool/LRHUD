@@ -266,7 +266,6 @@ public class LRHUD: UIView {
 private extension LRHUD {
     func registerNotifications() {
         #if os(iOS)
-        NotificationCenter.default.addObserver(self, selector: #selector(positionHUD(_:)), name: UIApplication.didChangeStatusBarOrientationNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(positionHUD(_:)), name: UIApplication.keyboardWillHideNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(positionHUD(_:)), name: UIApplication.keyboardDidHideNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(positionHUD(_:)), name: UIApplication.keyboardWillShowNotification, object: nil)
@@ -424,8 +423,7 @@ extension LRHUD {
         } else {
             cancelRingLayerAnimation()
             hudView.contentView.addSubview(indefiniteAnimatedView)
-//            indefiniteAnimatedView.star
-//            indefiniteAnimatedView.
+            indefiniteAnimatedView.startAnimating()
             activityCount += 1
         }
 
@@ -557,9 +555,9 @@ private extension LRHUD {
             if _indefiniteAnimatedView == nil {
                 _indefiniteAnimatedView = IndefiniteAnimatedView()
             }
-            (_indefiniteAnimatedView as? IndefiniteAnimatedView)?.strokeColor = foregroundColorForStyle
-            (_indefiniteAnimatedView as? IndefiniteAnimatedView)?.strokeThickness = ringThickness
-            (_indefiniteAnimatedView as? IndefiniteAnimatedView)?.radius = statusLabel.text != nil ? ringRadius : ringNoTextRadius
+            _indefiniteAnimatedView!.set(color: foregroundColorForStyle)
+            _indefiniteAnimatedView!.set(radius: statusLabel.text != nil ? ringRadius : ringNoTextRadius)
+            _indefiniteAnimatedView!.set(thickness: ringThickness)
         } else {
             if let __indefiniteAnimatedView = _indefiniteAnimatedView, !(__indefiniteAnimatedView is UIActivityIndicatorView) {
                 _indefiniteAnimatedView?.removeFromSuperview()
@@ -568,9 +566,9 @@ private extension LRHUD {
             if _indefiniteAnimatedView == nil {
                 _indefiniteAnimatedView = UIActivityIndicatorView(style: .large)
             }
-            (_indefiniteAnimatedView as? UIActivityIndicatorView)?.color = foregroundColorForStyle
+            _indefiniteAnimatedView!.set(color: foregroundColorForStyle)
         }
-        _indefiniteAnimatedView?.sizeToFit()
+        _indefiniteAnimatedView!.sizeToFit()
         return _indefiniteAnimatedView!
     }
     
@@ -607,7 +605,7 @@ private extension LRHUD {
     }
     
     func cancelIndefiniteAnimatedViewAnimation() {
-//        indefiniteAnimatedView.stop
+        indefiniteAnimatedView.stopAnimating()
         indefiniteAnimatedView.removeFromSuperview()
     }
 }
@@ -1008,10 +1006,22 @@ public protocol IndefiniteAnimated where Self: UIView {
     func startAnimating()
 
     func stopAnimating()
+    
+    func set(color: UIColor)
+    
+    func set(radius: CGFloat)
+    
+    func set(thickness: CGFloat)
 }
 
 public protocol ProgressAnimated where Self: UIView {
+    func set(progress: CGFloat)
     
+    func set(color: UIColor)
+    
+    func set(radius: CGFloat)
+    
+    func set(thickness: CGFloat)
 }
 
 private extension DispatchWorkItem {
@@ -1022,4 +1032,25 @@ private extension DispatchWorkItem {
     }
 }
 
-extension UIActivityIndicatorView: IndefiniteAnimated {}
+extension UIActivityIndicatorView: IndefiniteAnimated {
+    public func set(color: UIColor) {
+        self.color = color
+    }
+    
+    public func set(radius: CGFloat) {}
+    
+    public func set(thickness: CGFloat) {}
+}
+
+private class RadialGradientLayer: CALayer {
+    var gradientCenter: CGPoint = .zero
+    
+    override func draw(in ctx: CGContext) {
+        let locations: [CGFloat] = [0, 1]
+        let colors: [CGFloat] = [0, 0, 0, 0, 0, 0, 0, 0.75]
+        guard let gradient = CGGradient(colorSpace: CGColorSpaceCreateDeviceRGB(), colorComponents: colors, locations: locations, count: 2) else {
+            return
+        }
+        ctx.drawRadialGradient(gradient, startCenter: gradientCenter, startRadius: 0, endCenter: gradientCenter, endRadius: min(bounds.size.width, bounds.size.height), options: .drawsAfterEndLocation)
+    }
+}

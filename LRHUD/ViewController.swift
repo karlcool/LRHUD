@@ -13,13 +13,14 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         LRHUD.set(defaultStyle: .dark)
 //        LRHUD.set(defaultMaskType: .gradient)
-//        LRHUD.set(defaultAnimationType: .native)
+        LRHUD.set(defaultAnimationType: .native)
         print("!")
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        LRHUD.show(progress: 0.4)
+        LRHUD.show()
+//        LRHUD.show(progress: 0.4)
 //        LRHUD.show(info: "这是info的内容，很长")
 //        LRHUD.show(success: "这是info的内容，很长这是info的内容，很长")
     }

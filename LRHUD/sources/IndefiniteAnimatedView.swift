@@ -140,5 +140,17 @@ extension IndefiniteAnimatedView: IndefiniteAnimated {
     
     func stopAnimating() {
         
-    } 
+    }
+    
+    func set(color: UIColor) {
+        strokeColor = color
+    }
+    
+    func set(radius: CGFloat) {
+        self.radius = radius
+    }
+    
+    func set(thickness: CGFloat) {
+        strokeThickness = thickness
+    }
 }
