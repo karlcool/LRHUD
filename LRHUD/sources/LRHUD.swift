@@ -38,7 +38,7 @@ public class LRHUD: UIControl {
     
     var defaultStyle: Style = .light
     
-    var defaultMaskType: MaskType = .none
+    var defaultMaskType: MaskType = .clear
 
     var containerView: UIView?
     
@@ -90,6 +90,8 @@ public class LRHUD: UIControl {
 
     private var progressAnimatedViewClass: ProgressAnimated.Type = ProgressAnimatedView.self
     
+    private var imageAnimatedViewClass: ImageAnimated.Type = ImageAnimatedView.self
+    
     private var graceItem: DispatchWorkItem?
     
     private var fadeOutItem: DispatchWorkItem?
@@ -114,7 +116,7 @@ public class LRHUD: UIControl {
         return result
     }()
     
-    private lazy var _imageView = UIImageView()
+    private var _imageAnimatedView: ImageAnimated?
     
     private var _indefiniteAnimatedView: IndefiniteAnimated?
     
@@ -132,8 +134,8 @@ public class LRHUD: UIControl {
     private init() {
         super.init(frame: .zero)
         alpha = 0
-        imageView.alpha = alpha
         statusLabel.alpha = alpha
+        imageAnimatedView.alpha = alpha
         indefiniteAnimatedView.alpha = alpha
         progressAnimatedView.alpha = alpha
         addTarget(self, action: #selector(didReceiveTouchEvent(sender:event:)), for: .touchDown)
@@ -148,8 +150,8 @@ public class LRHUD: UIControl {
     }
     
     func updateHUDFrame() {
-        let progressUsed = imageView.isHidden
-        let imageUsed = !progressUsed && imageView.image != nil
+        let progressUsed = imageAnimatedView.isHidden
+        let imageUsed = !progressUsed && imageAnimatedView.image != nil
         
         var labelRect: CGRect = .zero
         var labelHeight: CGFloat = 0
@@ -164,8 +166,8 @@ public class LRHUD: UIControl {
         var contentWidth: CGFloat = 0
         var contentHeight: CGFloat = 0
         if imageUsed || progressUsed {
-            contentWidth = imageUsed ? imageView.bounds.width : indefiniteAnimatedView.bounds.width
-            contentHeight = imageUsed ? imageView.bounds.height : indefiniteAnimatedView.bounds.height
+            contentWidth = imageUsed ? imageAnimatedView.bounds.width : indefiniteAnimatedView.bounds.width
+            contentHeight = imageUsed ? imageAnimatedView.bounds.height : indefiniteAnimatedView.bounds.height
         }
         
         let hudWidth = LRHUD.horizontalSpacing + max(labelWidth, contentWidth) + LRHUD.horizontalSpacing
@@ -188,9 +190,9 @@ public class LRHUD: UIControl {
         if progress != LRHUD.undefinedProgress {
             progressAnimatedView.center = .init(x: hudView.bounds.midX, y: centerY)
         }
-        imageView.center = .init(x: hudView.bounds.midX, y: centerY)
+        imageAnimatedView.center = .init(x: hudView.bounds.midX, y: centerY)
         if imageUsed || progressUsed {
-            centerY = (imageUsed ? imageView.frame.maxY : indefiniteAnimatedView.frame.maxY) + LRHUD.labelSpacing + labelHeight / 2
+            centerY = (imageUsed ? imageAnimatedView.frame.maxY : indefiniteAnimatedView.frame.maxY) + LRHUD.labelSpacing + labelHeight / 2
         } else {
             centerY = hudView.bounds.midY
         }
@@ -382,8 +384,8 @@ extension LRHUD {
         graceItem = nil
         
         updateViewHierarchy()
-        imageView.isHidden = true
-        imageView.image = nil
+        imageAnimatedView.isHidden = true
+        imageAnimatedView.image = nil
         
         statusLabel.isHidden = status?.count == 0
         statusLabel.text = status
@@ -432,13 +434,13 @@ extension LRHUD {
         cancelIndefiniteAnimation()
         if shouldTintImages {
             if image.renderingMode != .alwaysTemplate {
-                imageView.image = image.withRenderingMode(.alwaysTemplate)
+                imageAnimatedView.image = image.withRenderingMode(.alwaysTemplate)
             }
-            imageView.tintColor = foregroundColorForStyle
+            imageAnimatedView.tintColor = foregroundColorForStyle
         } else {
-            imageView.image = image
+            imageAnimatedView.image = image
         }
-        imageView.isHidden = false
+        imageAnimatedView.isHidden = false
         statusLabel.isHidden = status?.count == 0
         statusLabel.text = status
         
@@ -549,6 +551,17 @@ private extension LRHUD {
         return _progressAnimatedView!
     }
 
+    var imageAnimatedView: ImageAnimated {
+        if _imageAnimatedView == nil || !(_imageAnimatedView?.isKind(of: imageAnimatedViewClass) ?? false) {
+            _imageAnimatedView?.removeFromSuperview()
+            _imageAnimatedView = imageAnimatedViewClass.init()
+            _imageAnimatedView!.setup()
+            hudView.contentView.addSubview(_imageAnimatedView!)
+        }
+        _imageAnimatedView!.frame = .init(origin: .zero, size: imageViewSize)
+        return _imageAnimatedView!
+    }
+    
     func cancelProgressAnimation() {
         CATransaction.begin()
         CATransaction.setDisableActions(true)
@@ -587,13 +600,6 @@ private extension LRHUD {
         return _statusLabel
     }
     
-    var imageView: UIImageView {
-        if _imageView.superview == nil {
-            hudView.contentView.addSubview(_imageView)
-            _imageView.frame = .init(origin: .zero, size: imageViewSize)
-        }
-        return _imageView
-    }
 }
 
 //MARK: - Helper
@@ -701,8 +707,8 @@ private extension LRHUD {
             hudView.backgroundColor = backgroundColorForStyle
         }
         alpha = 1
-        imageView.alpha = alpha
         statusLabel.alpha = alpha
+        imageAnimatedView.alpha = alpha
         indefiniteAnimatedView.alpha = alpha
         progressAnimatedView.alpha = alpha
     }
@@ -713,8 +719,8 @@ private extension LRHUD {
         }
         hudView.backgroundColor = .clear
         alpha = 0
-        imageView.alpha = alpha
         statusLabel.alpha = alpha
+        imageAnimatedView.alpha = alpha
         indefiniteAnimatedView.alpha = alpha
         progressAnimatedView.alpha = alpha
     }
@@ -749,6 +755,10 @@ public extension LRHUD {
     
     static func register(progressAnimatedView: ProgressAnimated.Type) {
         sharedView.progressAnimatedViewClass = progressAnimatedView
+    }
+    
+    static func register(imageAnimatedView: ImageAnimated.Type) {
+        sharedView.imageAnimatedViewClass = imageAnimatedView
     }
 
     static func set(containerView: UIView?) {
@@ -898,24 +908,7 @@ public extension LRHUD {
     }
 }
 
-//MARK: -
-public extension LRHUD {
-    enum Style {
-        case light
-        case dark
-        case auto
-        case custom
-    }
-    
-    enum MaskType {
-        case none
-        case clear
-        case black
-        case gradient
-        case custom
-    }
-}
-
+//MARK: - Custom UI Protocol
 public protocol IndefiniteAnimated where Self: UIView {
     func setup()
     
@@ -940,6 +933,42 @@ public protocol ProgressAnimated where Self: UIView {
     func set(radius: CGFloat)
     
     func set(thickness: CGFloat)
+}
+
+public protocol ImageAnimated where Self: UIView {
+    var image: UIImage? {set get}
+    
+    func setup()
+    
+    func startAnimating()
+
+    func stopAnimating()
+    
+    func set(imageType: LRHUD.ImageType)
+}
+
+//MARK: -
+public extension LRHUD {
+    enum Style {
+        case light
+        case dark
+        case auto
+        case custom
+    }
+    
+    enum MaskType {
+        case clear
+        case black
+        case gradient
+        case custom
+    }
+    
+    enum ImageType {
+        case info
+        case error
+        case success
+        case named(String)
+    }
 }
 
 private extension DispatchWorkItem {
