@@ -48,6 +48,10 @@ class ProgressAnimatedView: UIView {
 }
 
 extension ProgressAnimatedView: ProgressAnimated {
+    func setup() {
+        
+    }
+    
     func set(progress: CGFloat) {
         progressView.strokeEnd = progress
     }

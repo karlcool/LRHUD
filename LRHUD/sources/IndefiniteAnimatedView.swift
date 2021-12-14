@@ -134,6 +134,10 @@ class IndefiniteAnimatedView: UIView {
 }
 
 extension IndefiniteAnimatedView: IndefiniteAnimated {
+    func setup() {
+        
+    }
+    
     func startAnimating() {
         
     }

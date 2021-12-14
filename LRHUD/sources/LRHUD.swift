@@ -39,9 +39,7 @@ public class LRHUD: UIView {
     var defaultStyle: Style = .light
     
     var defaultMaskType: MaskType = .none
-    
-    var defaultAnimationType: AnimationType = .flat
-    
+
     var containerView: UIView?
     
     var minimumSize: CGSize = .init(width: 60, height: 60)
@@ -88,6 +86,10 @@ public class LRHUD: UIView {
     
     var hapticsEnabled = false
 
+    private var indefiniteAnimatedViewClass: IndefiniteAnimated.Type = IndefiniteAnimatedView.self
+
+    private var progressAnimatedViewClass: ProgressAnimated.Type = ProgressAnimatedView.self
+    
     private var graceItem: DispatchWorkItem?
     
     private var fadeOutItem: DispatchWorkItem?
@@ -262,6 +264,7 @@ public class LRHUD: UIView {
 private extension LRHUD {
     func registerNotifications() {
         #if os(iOS)
+        NotificationCenter.default.addObserver(self, selector: #selector(positionHUD(_:)), name: UIScene.didActivateNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(positionHUD(_:)), name: UIApplication.keyboardWillHideNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(positionHUD(_:)), name: UIApplication.keyboardDidHideNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(positionHUD(_:)), name: UIApplication.keyboardWillShowNotification, object: nil)
@@ -402,7 +405,7 @@ extension LRHUD {
         self.progress = progress
         
         if progress >= 0 {
-            cancelIndefiniteAnimatedViewAnimation()
+            cancelIndefiniteAnimation()
             if progressAnimatedView.superview == nil {
                 hudView.contentView.addSubview(progressAnimatedView)
             }
@@ -414,7 +417,7 @@ extension LRHUD {
                 activityCount += 1
             }
         } else {
-            cancelRingLayerAnimation()
+            cancelProgressAnimation()
             hudView.contentView.addSubview(indefiniteAnimatedView)
             indefiniteAnimatedView.startAnimating()
             activityCount += 1
@@ -440,8 +443,8 @@ extension LRHUD {
         updateViewHierarchy()
         
         progress = LRHUD.undefinedProgress
-        cancelRingLayerAnimation()
-        cancelIndefiniteAnimatedViewAnimation()
+        cancelProgressAnimation()
+        cancelIndefiniteAnimation()
         if shouldTintImages {
             if image.renderingMode != .alwaysTemplate {
                 imageView.image = image.withRenderingMode(.alwaysTemplate)
@@ -482,8 +485,8 @@ extension LRHUD {
                 self.removeFromSuperview()
                 
                 self.progress = LRHUD.undefinedProgress
-                self.cancelRingLayerAnimation()
-                self.cancelIndefiniteAnimatedViewAnimation()
+                self.cancelProgressAnimation()
+                self.cancelIndefiniteAnimation()
                 NotificationCenter.default.removeObserver(self)
                 NotificationCenter.default.post(name: LRHUD.didDisappear, object: self, userInfo: self.notificationUserInfo())
                 completion?()
@@ -537,37 +540,26 @@ extension LRHUD {
     }
 }
 
-//MARK: - Ring progress animation
+//MARK: - Custom UI
 private extension LRHUD {
     var indefiniteAnimatedView: IndefiniteAnimated {
-        if defaultAnimationType == .flat {
-            if let __indefiniteAnimatedView = _indefiniteAnimatedView, !(__indefiniteAnimatedView is IndefiniteAnimatedView) {
-                _indefiniteAnimatedView?.removeFromSuperview()
-                _indefiniteAnimatedView = nil
-            }
-            if _indefiniteAnimatedView == nil {
-                _indefiniteAnimatedView = IndefiniteAnimatedView()
-            }
-            _indefiniteAnimatedView!.set(color: foregroundColorForStyle)
-            _indefiniteAnimatedView!.set(radius: statusLabel.text != nil ? ringRadius : ringNoTextRadius)
-            _indefiniteAnimatedView!.set(thickness: ringThickness)
-        } else {
-            if let __indefiniteAnimatedView = _indefiniteAnimatedView, !(__indefiniteAnimatedView is UIActivityIndicatorView) {
-                _indefiniteAnimatedView?.removeFromSuperview()
-                _indefiniteAnimatedView = nil
-            }
-            if _indefiniteAnimatedView == nil {
-                _indefiniteAnimatedView = UIActivityIndicatorView(style: .large)
-            }
-            _indefiniteAnimatedView!.set(color: foregroundColorForStyle)
+        if _indefiniteAnimatedView == nil || !(_indefiniteAnimatedView?.isKind(of: indefiniteAnimatedViewClass) ?? false) {
+            _indefiniteAnimatedView?.removeFromSuperview()
+            _indefiniteAnimatedView = indefiniteAnimatedViewClass.init()
+            _indefiniteAnimatedView!.setup()
         }
+        _indefiniteAnimatedView!.set(color: foregroundColorForStyle)
+        _indefiniteAnimatedView!.set(radius: statusLabel.text != nil ? ringRadius : ringNoTextRadius)
+        _indefiniteAnimatedView!.set(thickness: ringThickness)
         _indefiniteAnimatedView!.sizeToFit()
         return _indefiniteAnimatedView!
     }
     
     var progressAnimatedView: ProgressAnimated {
-        if _progressAnimatedView == nil {
-            _progressAnimatedView = ProgressAnimatedView()
+        if _progressAnimatedView == nil || !(_progressAnimatedView?.isKind(of: progressAnimatedViewClass) ?? false) {
+            _progressAnimatedView?.removeFromSuperview()
+            _progressAnimatedView = progressAnimatedViewClass.init()
+            _progressAnimatedView!.setup()
         }
         _progressAnimatedView!.set(color: foregroundColorForStyle)
         _progressAnimatedView!.set(thickness: ringThickness)
@@ -575,17 +567,16 @@ private extension LRHUD {
         return _progressAnimatedView!
     }
 
-    func cancelRingLayerAnimation() {
+    func cancelProgressAnimation() {
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         hudView.layer.removeAllAnimations()
         progressAnimatedView.set(progress: 0)
         CATransaction.commit()
-        
         progressAnimatedView.removeFromSuperview()
     }
     
-    func cancelIndefiniteAnimatedViewAnimation() {
+    func cancelIndefiniteAnimation() {
         indefiniteAnimatedView.stopAnimating()
         indefiniteAnimatedView.removeFromSuperview()
     }
@@ -780,13 +771,7 @@ private extension LRHUD {
         progressAnimatedView.alpha = backgroundView.alpha
     }
     
-    var hapticGenerator: UINotificationFeedbackGenerator? {
-        if hapticsEnabled {
-            return _hapticGenerator
-        } else {
-            return nil
-        }
-    }
+    var hapticGenerator: UINotificationFeedbackGenerator? { hapticsEnabled ? _hapticGenerator : nil }
 }
 
 //MARK: - Static setters
@@ -803,10 +788,14 @@ public extension LRHUD {
         sharedView.defaultMaskType = defaultMaskType
     }
     
-    static func set(defaultAnimationType: AnimationType) {
-        sharedView.defaultAnimationType = defaultAnimationType
+    static func register(indefiniteAnimatedViewClass: IndefiniteAnimated.Type) {
+        sharedView.indefiniteAnimatedViewClass = indefiniteAnimatedViewClass
     }
     
+    static func register(progressAnimatedView: ProgressAnimated.Type) {
+        sharedView.progressAnimatedViewClass = progressAnimatedView
+    }
+
     static func set(containerView: UIView?) {
         sharedView.containerView = containerView
     }
@@ -974,14 +963,11 @@ public extension LRHUD {
         case gradient
         case custom
     }
-    
-    enum AnimationType {
-        case flat
-        case native
-    }
 }
 
 public protocol IndefiniteAnimated where Self: UIView {
+    func setup()
+    
     func startAnimating()
 
     func stopAnimating()
@@ -994,6 +980,8 @@ public protocol IndefiniteAnimated where Self: UIView {
 }
 
 public protocol ProgressAnimated where Self: UIView {
+    func setup()
+    
     func set(progress: CGFloat)
     
     func set(color: UIColor)
@@ -1012,6 +1000,10 @@ private extension DispatchWorkItem {
 }
 
 extension UIActivityIndicatorView: IndefiniteAnimated {
+    public func setup() {
+        style = .large
+    }
+    
     public func set(color: UIColor) {
         self.color = color
     }
