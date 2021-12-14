@@ -54,9 +54,11 @@ public class LRHUD: UIControl {
     
     var font: UIFont = .preferredFont(forTextStyle: .subheadline)
 
-    var foregroundColor: UIColor = .black
+    var hudForegroundColor: UIColor = .black
     
     var backgroundLayerColor: UIColor = .init(white: 0, alpha: 0.4)
+    
+    var hudBackgroundColor: UIColor = .init(white: 0, alpha: 0.4)
     
     var imageViewSize: CGSize = .init(width: 28, height: 28)
     
@@ -96,6 +98,7 @@ public class LRHUD: UIControl {
     
     private lazy var _hudView: UIVisualEffectView = {
         let result = UIVisualEffectView()
+        result.isUserInteractionEnabled = false
         result.layer.masksToBounds = true
         result.autoresizingMask = [.flexibleBottomMargin, .flexibleTopMargin, .flexibleRightMargin, .flexibleLeftMargin]
         return result
@@ -133,7 +136,7 @@ public class LRHUD: UIControl {
         statusLabel.alpha = alpha
         indefiniteAnimatedView.alpha = alpha
         progressAnimatedView.alpha = alpha
-        addTarget(self, action: #selector(controlViewDidReceiveTouchEvent(sender:event:)), for: .touchDown)
+        addTarget(self, action: #selector(didReceiveTouchEvent(sender:event:)), for: .touchDown)
         autoresizingMask = [.flexibleWidth, .flexibleHeight]
         backgroundColor = .clear
         accessibilityIdentifier = "LRHUD"
@@ -335,7 +338,7 @@ private extension LRHUD {
 
 //MARK: - Event handling
 private extension LRHUD {
-    @objc func controlViewDidReceiveTouchEvent(sender: NSObject, event: UIEvent) {
+    @objc func didReceiveTouchEvent(sender: NSObject, event: UIEvent) {
         NotificationCenter.default.post(name: LRHUD.didReceiveTouchEvent, object: self, userInfo: notificationUserInfo())
         guard let touch = event.allTouches?.first else {
             return
@@ -349,14 +352,16 @@ private extension LRHUD {
 
 //MARK: - Master show/dismiss methods
 extension LRHUD {
-    func show(progress: Float, status: String?) {
+    func show(progress: Float, status: String?, interaction: Bool = true) {
         OperationQueue.main.addOperation { [weak self] in
+            self?.isUserInteractionEnabled = interaction
             self?._show(progress: progress, status: status)
         }
     }
     
-    func show(image: UIImage, status: String?, duration: TimeInterval) {
+    func show(image: UIImage, status: String?, duration: TimeInterval, interaction: Bool = true) {
         OperationQueue.main.addOperation { [weak self] in
+            self?.isUserInteractionEnabled = interaction
             self?._show(image: image, status: status, duration: duration)
         }
     }
@@ -478,11 +483,9 @@ extension LRHUD {
         updateHUDFrame()
         updatePosition()
         if defaultMaskType == .none {
-            isUserInteractionEnabled = true
             accessibilityLabel = statusLabel.text ?? NSLocalizedString("Loading", comment: "")
             isAccessibilityElement = true
         } else {
-            isUserInteractionEnabled = false
             hudView.accessibilityLabel = statusLabel.text ?? NSLocalizedString("Loading", comment: "")
             hudView.isAccessibilityElement = true
         }
@@ -672,7 +675,7 @@ private extension LRHUD {
                 return .white
             }
         }
-        return foregroundColor
+        return hudForegroundColor
     }
     
     var backgroundColorForStyle: UIColor {
@@ -687,7 +690,7 @@ private extension LRHUD {
                 return .black
             }
         }
-        return backgroundColor ?? .clear
+        return hudBackgroundColor
     }
     
     func fadeInEffects() {
@@ -784,18 +787,18 @@ public extension LRHUD {
         sharedView.font = font
     }
     
-    static func set(foregroundColor: UIColor) {
-        sharedView.foregroundColor = foregroundColor
+    static func set(hudForegroundColor: UIColor) {
+        sharedView.hudForegroundColor = hudForegroundColor
+        set(defaultStyle: .custom)
+    }
+    
+    static func set(hudBackgroundColor: UIColor) {
+        sharedView.hudBackgroundColor = hudBackgroundColor
         set(defaultStyle: .custom)
     }
     
     static func set(backgroundColor: UIColor) {
-        sharedView.backgroundColor = backgroundColor
-        set(defaultStyle: .custom)
-    }
-    
-    static func set(backgroundLayerColor: UIColor) {
-        sharedView.backgroundLayerColor = backgroundLayerColor
+        sharedView.backgroundLayerColor = backgroundColor
     }
     
     static func set(imageViewSize: CGSize) {
@@ -857,36 +860,36 @@ public extension LRHUD {
 
 //MARK: - Show/Dismiss
 public extension LRHUD {
-    static func show(status: String? = nil, maskType: MaskType? = nil) {
-        show(progress: LRHUD.undefinedProgress, status: status, maskType: maskType)
+    static func show(status: String? = nil, interaction: Bool = true, maskType: MaskType? = nil) {
+        show(progress: LRHUD.undefinedProgress, status: status, interaction: interaction, maskType: maskType)
     }
 
-    static func show(progress: Float, status: String? = nil, maskType: MaskType? = nil) {
+    static func show(progress: Float, status: String? = nil, interaction: Bool = true, maskType: MaskType? = nil) {
         let existingMaskType = sharedView.defaultMaskType
         set(defaultMaskType: maskType ?? existingMaskType)
-        sharedView.show(progress: progress, status: status)
+        sharedView.show(progress: progress, status: status, interaction: interaction)
         set(defaultMaskType: existingMaskType)
     }
 
-    static func show(info: String, maskType: MaskType? = nil) {
-        show(image: sharedView.infoImage, status: info, maskType: maskType)
+    static func show(info: String, interaction: Bool = true, maskType: MaskType? = nil) {
+        show(image: sharedView.infoImage, status: info, interaction: interaction, maskType: maskType)
         sharedView.hapticGenerator?.notificationOccurred(.warning)
     }
 
-    static func show(success: String, maskType: MaskType? = nil) {
-        show(image: sharedView.successImage, status: success, maskType: maskType)
+    static func show(success: String, interaction: Bool = true, maskType: MaskType? = nil) {
+        show(image: sharedView.successImage, status: success, interaction: interaction, maskType: maskType)
         sharedView.hapticGenerator?.notificationOccurred(.success)
     }
 
-    static func show(error: String, maskType: MaskType? = nil) {
-        show(image: sharedView.errorImage, status: error, maskType: maskType)
+    static func show(error: String, interaction: Bool = true, maskType: MaskType? = nil) {
+        show(image: sharedView.errorImage, status: error, interaction: interaction, maskType: maskType)
         sharedView.hapticGenerator?.notificationOccurred(.error)
     }
 
-    static func show(image: UIImage, status: String, maskType: MaskType? = nil) {
+    static func show(image: UIImage, status: String, interaction: Bool = true, maskType: MaskType? = nil) {
         let existingMaskType = sharedView.defaultMaskType
         set(defaultMaskType: maskType ?? existingMaskType)
-        sharedView.show(image: image, status: status, duration: displayDuration(for: status))
+        sharedView.show(image: image, status: status, duration: displayDuration(for: status), interaction: interaction)
         set(defaultMaskType: existingMaskType)
     }
 
