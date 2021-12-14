@@ -11,9 +11,15 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+        LRHUD.set(defaultStyle: .dark)
+        
+        print("!")
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        LRHUD.show()
+    }
 
 }
 
