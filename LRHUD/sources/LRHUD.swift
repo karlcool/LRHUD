@@ -40,7 +40,7 @@ public class LRHUD: UIControl {
 
     var containerView: UIView?
     
-    var minimumSize: CGSize = .init(width: 60, height: 60)
+    var minimumSize: CGSize = .init(width: 80, height: 80)
     
     var ringThickness: CGFloat = 2
     
@@ -54,28 +54,28 @@ public class LRHUD: UIControl {
 
     var hudForegroundColor: UIColor = .black
     
-    var backgroundLayerColor: UIColor = .init(white: 0, alpha: 0.4)
-    
     var hudBackgroundColor: UIColor = .init(white: 0, alpha: 0.4)
+    
+    var backgroundLayerColor: UIColor = .init(white: 0, alpha: 0.4)
     
     var imageViewSize: CGSize = .init(width: 28, height: 28)
     
-    var shouldTintImages = true
-
     var graceTimeInterval: TimeInterval = 0
     
     var minimumDismissTimeInterval: TimeInterval = 3
     
     var maximumDismissTimeInterval: TimeInterval = .greatestFiniteMagnitude
     
-    var offsetFromCenter: UIOffset = .init(horizontal: 0, vertical: 0)
-    
     var fadeInAnimationDuration: TimeInterval = 0.15
     
     var fadeOutAnimationDuration: TimeInterval = 0.15
     
+    var offsetFromCenter: UIOffset = .init(horizontal: 0, vertical: 0)
+    
     var maxSupportedWindowLevel: UIWindow.Level = .normal
     
+    var shouldTintImages = true
+
     var hapticsEnabled = false
 
     private var indefiniteAnimatedViewClass: IndefiniteAnimated.Type = IndefiniteAnimatedView.self
@@ -791,12 +791,12 @@ public extension LRHUD {
         sharedView.indefiniteAnimatedViewClass = indefiniteAnimatedViewClass
     }
     
-    static func register(progressAnimatedView: ProgressAnimated.Type) {
-        sharedView.progressAnimatedViewClass = progressAnimatedView
+    static func register(progressAnimatedViewClass: ProgressAnimated.Type) {
+        sharedView.progressAnimatedViewClass = progressAnimatedViewClass
     }
     
-    static func register(imageAnimatedView: ImageAnimated.Type) {
-        sharedView.imageAnimatedViewClass = imageAnimatedView
+    static func register(imageAnimatedViewClass: ImageAnimated.Type) {
+        sharedView.imageAnimatedViewClass = imageAnimatedViewClass
     }
 
     static func set(containerView: UIView?) {
@@ -896,37 +896,31 @@ public extension LRHUD {
 
 //MARK: - Show/Dismiss
 public extension LRHUD {
-    static func show(status: String? = nil, interaction: Bool = true, maskStyle: MaskStyle? = nil) {
-        show(progress: LRHUD.undefinedProgress, status: status, interaction: interaction, maskStyle: maskStyle)
+    static func show(status: String? = nil, interaction: Bool = true) {
+        show(progress: LRHUD.undefinedProgress, status: status, interaction: interaction)
     }
 
-    static func show(progress: Float, status: String? = nil, interaction: Bool = true, maskStyle: MaskStyle? = nil) {
-        let existingMaskStyle = sharedView.maskStyle
-        set(maskStyle: maskStyle ?? existingMaskStyle)
+    static func show(progress: Float, status: String? = nil, interaction: Bool = true) {
         sharedView.show(progress: progress, status: status, interaction: interaction)
-        set(maskStyle: existingMaskStyle)
     }
 
-    static func show(info: String, interaction: Bool = true, maskStyle: MaskStyle? = nil) {
-        show(image: sharedView.imageAnimatedView.image(forType: .info), status: info, interaction: interaction, maskStyle: maskStyle)
+    static func show(image: UIImage, status: String, interaction: Bool = true) {
+        sharedView.show(image: image, status: status, duration: displayDuration(for: status), interaction: interaction)
+    }
+    
+    static func show(info: String, interaction: Bool = true) {
+        show(image: sharedView.imageAnimatedView.image(forType: .info), status: info, interaction: interaction)
         sharedView.hapticGenerator?.notificationOccurred(.warning)
     }
 
-    static func show(success: String, interaction: Bool = true, maskStyle: MaskStyle? = nil) {
-        show(image: sharedView.imageAnimatedView.image(forType: .success), status: success, interaction: interaction, maskStyle: maskStyle)
+    static func show(success: String, interaction: Bool = true) {
+        show(image: sharedView.imageAnimatedView.image(forType: .success), status: success, interaction: interaction)
         sharedView.hapticGenerator?.notificationOccurred(.success)
     }
 
-    static func show(error: String, interaction: Bool = true, maskStyle: MaskStyle? = nil) {
-        show(image: sharedView.imageAnimatedView.image(forType: .error), status: error, interaction: interaction, maskStyle: maskStyle)
+    static func show(error: String, interaction: Bool = true) {
+        show(image: sharedView.imageAnimatedView.image(forType: .error), status: error, interaction: interaction)
         sharedView.hapticGenerator?.notificationOccurred(.error)
-    }
-
-    static func show(image: UIImage, status: String, interaction: Bool = true, maskStyle: MaskStyle? = nil) {
-        let existingMaskStyle = sharedView.maskStyle
-        set(maskStyle: maskStyle ?? existingMaskStyle)
-        sharedView.show(image: image, status: status, duration: displayDuration(for: status), interaction: interaction)
-        set(maskStyle: existingMaskStyle)
     }
 
     static func dismiss(delay: TimeInterval = 0, completion: (() -> Void)? = nil) {

@@ -19,7 +19,7 @@ class ViewController: UIViewController {
         LRHUD.set(cornerRadius: 8)
         LRHUD.set(shouldTintImages: true)
         LRHUD.set(font: .systemFont(ofSize: 14))
-        LRHUD.set(minimumSize: .init(width: 60, height: 60))
+//        LRHUD.set(minimumSize: .init(width: 60, height: 60))
 //        LRHUD.register(indefiniteAnimatedViewClass: UIActivityIndicatorView.self)
 //        LRHUD.set(maskStyle: .gradient)
         print("!")
@@ -30,9 +30,9 @@ class ViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-//        LRHUD.show(status: "loading", interaction: false)
+        LRHUD.show(interaction: false)
 //        LRHUD.show(progress: 0.2, status: "加载中")
-        LRHUD.show(info: "这是info的内容，很长")
+//        LRHUD.show(info: "这是info的内容，很长")
 //        LRHUD.show(success: "这是info的内容，很长这是info的内容，很长")
     }
 
