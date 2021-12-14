@@ -29,5 +29,12 @@ class ViewController: UIViewController {
 //        LRHUD.show(success: "这是info的内容，很长这是info的内容，很长")
     }
 
+    @IBAction func click(_ sender: Any) {
+        if LRHUD.isVisible {
+            LRHUD.dismiss()
+        } else {
+            LRHUD.show()
+        }
+    }
 }
 

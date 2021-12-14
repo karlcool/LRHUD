@@ -20,7 +20,7 @@ public class LRHUD: UIControl {
     
     static let didAppear = Notification.Name(rawValue: "LRHUD.didAppear")
     
-    public static var isVisible: Bool { sharedView.backgroundView.alpha > 0 }
+    public static var isVisible: Bool { sharedView.alpha > 0 }
     
     static let parallaxDepthPoints: CGFloat = 10
     
@@ -92,12 +92,6 @@ public class LRHUD: UIControl {
     
     private var fadeOutItem: DispatchWorkItem?
 
-    private lazy var _backgroundView: UIView = {
-        let result = UIView()
-        result.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        return result
-    }()
-    
     private lazy var backgroundRadialGradientLayer = RadialGradientLayer()
     
     private lazy var _hudView: UIVisualEffectView = {
@@ -129,19 +123,19 @@ public class LRHUD: UIControl {
     
     private var activityCount: UInt = 0
     
-    static let sharedView: LRHUD = .init(frame: LRHUD.currentWindow?.bounds ?? UIScreen.main.bounds)
+    static let sharedView: LRHUD = .init()
     
     //MARK: - Instance Methods
-    private override init(frame: CGRect) {
-        super.init(frame: frame)
-        backgroundView.alpha = 0
-        imageView.alpha = backgroundView.alpha
-        statusLabel.alpha = backgroundView.alpha
-        indefiniteAnimatedView.alpha = backgroundView.alpha
-        progressAnimatedView.alpha = backgroundView.alpha
+    private init() {
+        super.init(frame: .zero)
+        alpha = 0
+        imageView.alpha = alpha
+        statusLabel.alpha = alpha
+        indefiniteAnimatedView.alpha = alpha
+        progressAnimatedView.alpha = alpha
         addTarget(self, action: #selector(controlViewDidReceiveTouchEvent(sender:event:)), for: .touchDown)
         autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        backgroundColor = .white
+        backgroundColor = .clear
         accessibilityIdentifier = "LRHUD"
         isAccessibilityElement = true
     }
@@ -202,72 +196,12 @@ public class LRHUD: UIControl {
         CATransaction.commit()
     }
     
-    func updateMotionEffect(forOrientation: UIInterfaceOrientation) {
-        let xMotionEffectType: UIInterpolatingMotionEffect.EffectType = forOrientation.isPortrait ? .tiltAlongHorizontalAxis : .tiltAlongVerticalAxis
-        let yMotionEffectType: UIInterpolatingMotionEffect.EffectType = forOrientation.isPortrait ? .tiltAlongVerticalAxis : .tiltAlongHorizontalAxis
-        updateMotionEffect(xMotionEffectType: xMotionEffectType, yMotionEffectType: yMotionEffectType)
-    }
-    
-    func updateMotionEffect(xMotionEffectType: UIInterpolatingMotionEffect.EffectType, yMotionEffectType: UIInterpolatingMotionEffect.EffectType) {
-        let effectX = UIInterpolatingMotionEffect(keyPath: "center.x", type: xMotionEffectType)
-        effectX.minimumRelativeValue = -LRHUD.parallaxDepthPoints
-        effectX.maximumRelativeValue = LRHUD.parallaxDepthPoints
-        
-        let effectY = UIInterpolatingMotionEffect(keyPath: "center.y", type: yMotionEffectType)
-        effectX.minimumRelativeValue = -LRHUD.parallaxDepthPoints
-        effectX.maximumRelativeValue = LRHUD.parallaxDepthPoints
-        
-        let effectGroup = UIMotionEffectGroup()
-        effectGroup.motionEffects = [effectX, effectY]
-        hudView.motionEffects = []
-        hudView.addMotionEffect(effectGroup)
-    }
-    
-    func updateViewHierarchy() {
-        if superview == nil {
-            if let _containerView = containerView {
-                _containerView.addSubview(self)
-            } else {
-                frontWindow?.addSubview(self)
-            }
-        } else {
-            superview?.bringSubviewToFront(self)
-        }
-    }
-    
-    func set(status: String) {
-        statusLabel.text = status
-        statusLabel.isHidden = status.count == 0
-        updateHUDFrame()
-    }
-}
-
-//MARK: - Notifications and their handling
-private extension LRHUD {
-    func registerNotifications() {
-        #if os(iOS)
-        NotificationCenter.default.addObserver(self, selector: #selector(positionHUD(_:)), name: UIScene.didActivateNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(positionHUD(_:)), name: UIApplication.keyboardWillHideNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(positionHUD(_:)), name: UIApplication.keyboardDidHideNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(positionHUD(_:)), name: UIApplication.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(positionHUD(_:)), name: UIApplication.keyboardDidShowNotification, object: nil)
-        #else
-        NotificationCenter.default.addObserver(self, selector: #selector(positionHUD(_:)), name: UIApplication.didBecomeActiveNotification, object: nil)
-        #endif
-    }
-    
-    func notificationUserInfo() -> [String: String] {
-        guard let _text = statusLabel.text else {
-            return [:]
-        }
-        return [LRHUD.statusUserInfoKey: _text]
-    }
-    
-    @objc func positionHUD(_ notification: Notification? = nil) {
+    @objc func updatePosition(_ notification: Notification? = nil) {
         var keyboardHeight: CGFloat = 0
         var animationDuration: CGFloat = 0
         
-        frame = LRHUD.currentWindow?.bounds ?? UIScreen.main.bounds
+        frame = superview?.bounds ?? UIScreen.main.bounds
+        updateBackground()
         #if os(iOS)
         let orientation: UIInterfaceOrientation = frame.width > frame.height ? .landscapeLeft : .portrait
         #else
@@ -312,13 +246,90 @@ private extension LRHUD {
         }
     }
     
-    func moveTo(point: CGPoint, rotateAngle: CGFloat) {
-        hudView.transform = .init(rotationAngle: rotateAngle)
-        if let _containerView = containerView {
-            hudView.center = .init(x: _containerView.center.x + offsetFromCenter.horizontal, y: _containerView.center.y + offsetFromCenter.vertical)
+    func updateMotionEffect(forOrientation: UIInterfaceOrientation) {
+        let xMotionEffectType: UIInterpolatingMotionEffect.EffectType = forOrientation.isPortrait ? .tiltAlongHorizontalAxis : .tiltAlongVerticalAxis
+        let yMotionEffectType: UIInterpolatingMotionEffect.EffectType = forOrientation.isPortrait ? .tiltAlongVerticalAxis : .tiltAlongHorizontalAxis
+        updateMotionEffect(xMotionEffectType: xMotionEffectType, yMotionEffectType: yMotionEffectType)
+    }
+    
+    func updateMotionEffect(xMotionEffectType: UIInterpolatingMotionEffect.EffectType, yMotionEffectType: UIInterpolatingMotionEffect.EffectType) {
+        let effectX = UIInterpolatingMotionEffect(keyPath: "center.x", type: xMotionEffectType)
+        effectX.minimumRelativeValue = -LRHUD.parallaxDepthPoints
+        effectX.maximumRelativeValue = LRHUD.parallaxDepthPoints
+        
+        let effectY = UIInterpolatingMotionEffect(keyPath: "center.y", type: yMotionEffectType)
+        effectX.minimumRelativeValue = -LRHUD.parallaxDepthPoints
+        effectX.maximumRelativeValue = LRHUD.parallaxDepthPoints
+        
+        let effectGroup = UIMotionEffectGroup()
+        effectGroup.motionEffects = [effectX, effectY]
+        hudView.motionEffects = []
+        hudView.addMotionEffect(effectGroup)
+    }
+    
+    func updateViewHierarchy() {
+        if superview == nil {
+            if let _containerView = containerView {
+                _containerView.addSubview(self)
+            } else {
+                frontWindow?.addSubview(self)
+            }
         } else {
-            hudView.center = .init(x: point.x + offsetFromCenter.horizontal, y: point.y + offsetFromCenter.vertical)
+            superview?.bringSubviewToFront(self)
         }
+    }
+    
+    func updateBackground() {
+        if defaultMaskType == .gradient {
+            if backgroundRadialGradientLayer.superlayer == nil {
+                layer.insertSublayer(backgroundRadialGradientLayer, at: 0)
+            }
+            backgroundRadialGradientLayer.backgroundColor = UIColor.clear.cgColor
+            backgroundRadialGradientLayer.frame = bounds
+            var gradientCenter = center
+            gradientCenter.y = (bounds.height - visibleKeyboardHeight) / 2
+            backgroundRadialGradientLayer.gradientCenter = gradientCenter
+            backgroundRadialGradientLayer.setNeedsDisplay()
+        } else {
+            if backgroundRadialGradientLayer.superlayer != nil {
+                backgroundRadialGradientLayer.removeFromSuperlayer()
+            }
+            if defaultMaskType == .black {
+                backgroundColor = .init(white: 0, alpha: 0.4)
+            } else if defaultMaskType == .custom {
+                backgroundColor = backgroundLayerColor
+            } else {
+                backgroundColor = .clear
+            }
+        }
+    }
+    
+    func set(status: String) {
+        statusLabel.text = status
+        statusLabel.isHidden = status.count == 0
+        updateHUDFrame()
+    }
+}
+
+//MARK: - Notifications and their handling
+private extension LRHUD {
+    func registerNotifications() {
+        #if os(iOS)
+        NotificationCenter.default.addObserver(self, selector: #selector(updatePosition(_:)), name: UIScene.didActivateNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updatePosition(_:)), name: UIApplication.keyboardWillHideNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updatePosition(_:)), name: UIApplication.keyboardDidHideNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updatePosition(_:)), name: UIApplication.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updatePosition(_:)), name: UIApplication.keyboardDidShowNotification, object: nil)
+        #else
+        NotificationCenter.default.addObserver(self, selector: #selector(updatePosition(_:)), name: UIApplication.didBecomeActiveNotification, object: nil)
+        #endif
+    }
+    
+    func notificationUserInfo() -> [String: String] {
+        guard let _text = statusLabel.text else {
+            return [:]
+        }
+        return [LRHUD.statusUserInfoKey: _text]
     }
 }
 
@@ -392,7 +403,7 @@ extension LRHUD {
             activityCount += 1
         }
 
-        if graceTimeInterval > 0 && backgroundView.alpha == 0 {
+        if graceTimeInterval > 0 && alpha == 0 {
             graceItem = .after(timeInterval: graceTimeInterval, block: { [weak self] in
                 self?.fadeIn()
             })
@@ -426,7 +437,7 @@ extension LRHUD {
         statusLabel.isHidden = status?.count == 0
         statusLabel.text = status
         
-        if graceTimeInterval > 0 && backgroundView.alpha == 0 {
+        if graceTimeInterval > 0 && alpha == 0 {
             graceItem = .after(timeInterval: graceTimeInterval, block: { [weak self] in
                 self?.fadeIn(duration: duration)
             })
@@ -445,10 +456,10 @@ extension LRHUD {
                 self.hudView.transform = self.hudView.transform.scaledBy(x: 1 / 1.3, y: 1 / 1.3)
                 self.fadeOutEffects()
             } completion: { isFinished in
-                guard self.backgroundView.alpha == 0 else {
+                guard self.alpha == 0 else {
                     return
                 }
-                self.backgroundView.removeFromSuperview()
+                self.removeFromSuperview()
                 self.hudView.removeFromSuperview()
                 self.removeFromSuperview()
                 
@@ -465,7 +476,7 @@ extension LRHUD {
     
     func fadeIn(duration: TimeInterval = 0) {
         updateHUDFrame()
-        positionHUD()
+        updatePosition()
         if defaultMaskType == .none {
             isUserInteractionEnabled = true
             accessibilityLabel = statusLabel.text ?? NSLocalizedString("Loading", comment: "")
@@ -475,14 +486,14 @@ extension LRHUD {
             hudView.accessibilityLabel = statusLabel.text ?? NSLocalizedString("Loading", comment: "")
             hudView.isAccessibilityElement = true
         }
-        if backgroundView.alpha != 1 {
+        if alpha != 1 {
             NotificationCenter.default.post(name: LRHUD.willAppear, object: self, userInfo: notificationUserInfo())
             hudView.transform = hudView.transform.scaledBy(x: 1 / 1.5, y: 1 / 1.5)
             UIView.animate(withDuration: fadeInAnimationDuration, delay: 0, options: [.allowUserInteraction, .curveEaseIn, .beginFromCurrentState]) {
                 self.hudView.transform = .identity
                 self.fadeInEffects()
             } completion: { isFinished in
-                guard self.backgroundView.alpha == 1 else {
+                guard self.alpha == 1 else {
                     return
                 }
                 self.registerNotifications()
@@ -556,37 +567,6 @@ private extension LRHUD {
         return min(max(TimeInterval(string.count) * 0.06 + 0.5, sharedView.minimumDismissTimeInterval), sharedView.maximumDismissTimeInterval)
     }
 
-    var backgroundView: UIView {
-        if _backgroundView.superview == nil {
-            insertSubview(_backgroundView, belowSubview: hudView)
-        }
-        if defaultMaskType == .gradient {
-            if backgroundRadialGradientLayer.superlayer == nil {
-                _backgroundView.layer.insertSublayer(backgroundRadialGradientLayer, at: 0)
-            }
-            backgroundRadialGradientLayer.backgroundColor = UIColor.clear.cgColor
-            backgroundRadialGradientLayer.frame = bounds
-            var gradientCenter = center
-            gradientCenter.y = (bounds.height - visibleKeyboardHeight) / 2
-            backgroundRadialGradientLayer.gradientCenter = gradientCenter
-            backgroundRadialGradientLayer.setNeedsDisplay()
-        } else {
-            if backgroundRadialGradientLayer.superlayer != nil {
-                backgroundRadialGradientLayer.removeFromSuperlayer()
-            }
-            if defaultMaskType == .black {
-                _backgroundView.backgroundColor = .init(white: 0, alpha: 0.4)
-            } else if defaultMaskType == .custom {
-                _backgroundView.backgroundColor = backgroundLayerColor
-            } else {
-                _backgroundView.backgroundColor = .clear
-            }
-        }
-        _backgroundView.frame = bounds
-        
-        return _backgroundView
-    }
-    
     var hudView: UIVisualEffectView {
         if _hudView.superview == nil {
             addSubview(_hudView)
@@ -626,7 +606,7 @@ private extension LRHUD {
             return UIApplication.shared.windows
         }
     }
-    
+ 
     private static var statusBarFrame: CGRect {
         if #available(iOS 13.0, *) {
             let scene = UIApplication.shared.connectedScenes.first { $0.activationState == .foregroundActive }
@@ -635,6 +615,8 @@ private extension LRHUD {
             return UIApplication.shared.statusBarFrame
         }
     }
+    
+    var hapticGenerator: UINotificationFeedbackGenerator? { hapticsEnabled ? _hapticGenerator : nil }
     
     var visibleKeyboardHeight: CGFloat {
         guard let keyboardWindow = LRHUD.allWindows.first else {
@@ -715,11 +697,11 @@ private extension LRHUD {
         } else {
             hudView.backgroundColor = backgroundColorForStyle
         }
-        backgroundView.alpha = 1
-        imageView.alpha = backgroundView.alpha
-        statusLabel.alpha = backgroundView.alpha
-        indefiniteAnimatedView.alpha = backgroundView.alpha
-        progressAnimatedView.alpha = backgroundView.alpha
+        alpha = 1
+        imageView.alpha = alpha
+        statusLabel.alpha = alpha
+        indefiniteAnimatedView.alpha = alpha
+        progressAnimatedView.alpha = alpha
     }
 
     func fadeOutEffects() {
@@ -727,14 +709,21 @@ private extension LRHUD {
             hudView.effect = nil
         }
         hudView.backgroundColor = .clear
-        backgroundView.alpha = 0
-        imageView.alpha = backgroundView.alpha
-        statusLabel.alpha = backgroundView.alpha
-        indefiniteAnimatedView.alpha = backgroundView.alpha
-        progressAnimatedView.alpha = backgroundView.alpha
+        alpha = 0
+        imageView.alpha = alpha
+        statusLabel.alpha = alpha
+        indefiniteAnimatedView.alpha = alpha
+        progressAnimatedView.alpha = alpha
     }
     
-    var hapticGenerator: UINotificationFeedbackGenerator? { hapticsEnabled ? _hapticGenerator : nil }
+    func moveTo(point: CGPoint, rotateAngle: CGFloat) {
+        hudView.transform = .init(rotationAngle: rotateAngle)
+        if let _containerView = containerView {
+            hudView.center = .init(x: _containerView.center.x + offsetFromCenter.horizontal, y: _containerView.center.y + offsetFromCenter.vertical)
+        } else {
+            hudView.center = .init(x: point.x + offsetFromCenter.horizontal, y: point.y + offsetFromCenter.vertical)
+        }
+    }
 }
 
 //MARK: - Static setters
