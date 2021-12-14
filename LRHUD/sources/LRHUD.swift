@@ -7,7 +7,7 @@
 
 import UIKit
 
-public class LRHUD: UIView {
+public class LRHUD: UIControl {
     static let didReceiveTouchEvent = Notification.Name(rawValue: "LRHUD.didReceiveTouchEvent")
     
     static let didTouchDownInside = Notification.Name(rawValue: "LRHUD.didTouchDownInside")
@@ -91,16 +91,7 @@ public class LRHUD: UIView {
     private var graceItem: DispatchWorkItem?
     
     private var fadeOutItem: DispatchWorkItem?
-    
-    private lazy var _controlView: UIControl = {
-        let result = UIControl()
-        result.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        result.backgroundColor = .clear
-        result.isUserInteractionEnabled = true
-        result.addTarget(self, action: #selector(controlViewDidReceiveTouchEvent(sender:event:)), for: .touchDown)
-        return result
-    }()
-    
+
     private lazy var _backgroundView: UIView = {
         let result = UIView()
         result.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -148,7 +139,8 @@ public class LRHUD: UIView {
         statusLabel.alpha = backgroundView.alpha
         indefiniteAnimatedView.alpha = backgroundView.alpha
         progressAnimatedView.alpha = backgroundView.alpha
-        isUserInteractionEnabled = false
+        addTarget(self, action: #selector(controlViewDidReceiveTouchEvent(sender:event:)), for: .touchDown)
+        autoresizingMask = [.flexibleWidth, .flexibleHeight]
         backgroundColor = .white
         accessibilityIdentifier = "LRHUD"
         isAccessibilityElement = true
@@ -232,18 +224,14 @@ public class LRHUD: UIView {
     }
     
     func updateViewHierarchy() {
-        if controlView.superview == nil {
+        if superview == nil {
             if let _containerView = containerView {
-                _containerView.addSubview(controlView)
+                _containerView.addSubview(self)
             } else {
-                frontWindow?.addSubview(controlView)
+                frontWindow?.addSubview(self)
             }
         } else {
-            controlView.superview?.bringSubviewToFront(controlView)
-        }
-        
-        if superview == nil {
-            controlView.addSubview(self)
+            superview?.bringSubviewToFront(self)
         }
     }
     
@@ -460,7 +448,6 @@ extension LRHUD {
                 guard self.backgroundView.alpha == 0 else {
                     return
                 }
-                self.controlView.removeFromSuperview()
                 self.backgroundView.removeFromSuperview()
                 self.hudView.removeFromSuperview()
                 self.removeFromSuperview()
@@ -480,11 +467,11 @@ extension LRHUD {
         updateHUDFrame()
         positionHUD()
         if defaultMaskType == .none {
-            controlView.isUserInteractionEnabled = true
+            isUserInteractionEnabled = true
             accessibilityLabel = statusLabel.text ?? NSLocalizedString("Loading", comment: "")
             isAccessibilityElement = true
         } else {
-            controlView.isUserInteractionEnabled = false
+            isUserInteractionEnabled = false
             hudView.accessibilityLabel = statusLabel.text ?? NSLocalizedString("Loading", comment: "")
             hudView.isAccessibilityElement = true
         }
@@ -568,12 +555,7 @@ private extension LRHUD {
     static func displayDuration(for string: String) -> TimeInterval {
         return min(max(TimeInterval(string.count) * 0.06 + 0.5, sharedView.minimumDismissTimeInterval), sharedView.maximumDismissTimeInterval)
     }
-    
-    var controlView: UIView {
-        _controlView.frame = LRHUD.currentWindow?.bounds ?? UIScreen.main.bounds
-        return _controlView
-    }
-    
+
     var backgroundView: UIView {
         if _backgroundView.superview == nil {
             insertSubview(_backgroundView, belowSubview: hudView)
