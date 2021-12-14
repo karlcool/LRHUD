@@ -8,19 +8,28 @@
 import UIKit
 
 class ImageAnimatedView: UIImageView {
-
-    /*
-    // Only override draw() if you perform custom drawing.
-    // An empty implementation adversely affects performance during animation.
-    override func draw(_ rect: CGRect) {
-        // Drawing code
-    }
-    */
+    
+    var infoImage: UIImage = .init(systemName: "exclamationmark.circle") ?? .init()
+    
+    var successImage: UIImage = .init(systemName: "checkmark") ?? .init()
+    
+    var errorImage: UIImage = .init(systemName: "multiply") ?? .init()
 
 }
 
 extension ImageAnimatedView: ImageAnimated {
     func setup() {}
 
-    func set(imageType: LRHUD.ImageType) {}
+    func image(forType: LRHUD.ImageType) -> UIImage {
+        switch forType {
+        case .error:
+            return errorImage
+        case .info:
+            return infoImage
+        case .success:
+            return successImage
+        case .named(_):
+            return infoImage
+        }
+    }
 }

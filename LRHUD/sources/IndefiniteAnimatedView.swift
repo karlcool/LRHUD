@@ -89,15 +89,12 @@ class IndefiniteAnimatedView: UIView {
         _indefiniteAnimatedLayer!.lineCap = .round
         _indefiniteAnimatedLayer!.lineJoin = .bevel
         _indefiniteAnimatedLayer!.path = smoothedPath.cgPath
-        
-//        let bundle = Bundle(for: LRHUD.self)
-//        let url = bundle.url(forResource: "LRHUD", withExtension: "bundle")!
-//        let imageBundle = Bundle(url: url)!
-//
-        let maskLayer = CALayer()
-//        let path = imageBundle.path(forResource: "angle-mask", ofType: "png")!
-//        maskLayer.contents = UIImage(contentsOfFile: path)?.cgImage
-        maskLayer.contents = UIImage(named: "angle-mask")
+
+        let maskLayer = CAGradientLayer()
+        maskLayer.type = .conic
+        maskLayer.colors = [UIColor.black.withAlphaComponent(0).cgColor, UIColor.black.cgColor]
+        maskLayer.startPoint = CGPoint(x: 0.5, y: 0.5)
+        maskLayer.endPoint = CGPoint(x: 0.5, y: 0)
         maskLayer.frame = _indefiniteAnimatedLayer!.bounds
         _indefiniteAnimatedLayer!.mask = maskLayer
         
@@ -125,7 +122,7 @@ class IndefiniteAnimatedView: UIView {
         
         let animationGroup = CAAnimationGroup()
         animationGroup.duration = animationDuration
-        animationGroup.duration = .infinity
+        animationGroup.repeatCount = .infinity
         animationGroup.isRemovedOnCompletion = false
         animationGroup.timingFunction = timingFunction
         animationGroup.animations = [strokeStartAnimation, strokeEndAnimation]

@@ -19,7 +19,7 @@ class ViewController: UIViewController {
         LRHUD.set(cornerRadius: 8)
         LRHUD.set(font: .systemFont(ofSize: 14))
         LRHUD.set(minimumSize: .init(width: 60, height: 60))
-        LRHUD.register(indefiniteAnimatedViewClass: UIActivityIndicatorView.self)
+//        LRHUD.register(indefiniteAnimatedViewClass: UIActivityIndicatorView.self)
 //        LRHUD.set(defaultMaskType: .gradient)
         print("!")
         

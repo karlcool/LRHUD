@@ -63,12 +63,6 @@ public class LRHUD: UIControl {
     var imageViewSize: CGSize = .init(width: 28, height: 28)
     
     var shouldTintImages = true
-    
-    var infoImage: UIImage = .init(named: "info")!
-    
-    var successImage: UIImage = .init(named: "success")!
-    
-    var errorImage: UIImage = .init(named: "error")!
 
     var graceTimeInterval: TimeInterval = 0
     
@@ -147,6 +141,12 @@ public class LRHUD: UIControl {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    func set(status: String) {
+        statusLabel.text = status
+        statusLabel.isHidden = status.count == 0
+        updateHUDFrame()
     }
     
     func updateHUDFrame() {
@@ -308,12 +308,6 @@ public class LRHUD: UIControl {
             }
         }
     }
-    
-    func set(status: String) {
-        statusLabel.text = status
-        statusLabel.isHidden = status.count == 0
-        updateHUDFrame()
-    }
 }
 
 //MARK: - Notifications and their handling
@@ -441,6 +435,7 @@ extension LRHUD {
             imageAnimatedView.image = image
         }
         imageAnimatedView.isHidden = false
+        imageAnimatedView.startAnimating()
         statusLabel.isHidden = status?.count == 0
         statusLabel.text = status
         
@@ -473,6 +468,7 @@ extension LRHUD {
                 self.progress = LRHUD.undefinedProgress
                 self.cancelProgressAnimation()
                 self.cancelIndefiniteAnimation()
+                self.cancelImageAnimation()
                 NotificationCenter.default.removeObserver(self)
                 NotificationCenter.default.post(name: LRHUD.didDisappear, object: self, userInfo: self.notificationUserInfo())
                 completion?()
@@ -555,10 +551,10 @@ private extension LRHUD {
         if _imageAnimatedView == nil || !(_imageAnimatedView?.isKind(of: imageAnimatedViewClass) ?? false) {
             _imageAnimatedView?.removeFromSuperview()
             _imageAnimatedView = imageAnimatedViewClass.init()
+            _imageAnimatedView!.frame = .init(origin: .zero, size: imageViewSize)
             _imageAnimatedView!.setup()
             hudView.contentView.addSubview(_imageAnimatedView!)
         }
-        _imageAnimatedView!.frame = .init(origin: .zero, size: imageViewSize)
         return _imageAnimatedView!
     }
     
@@ -574,6 +570,10 @@ private extension LRHUD {
     func cancelIndefiniteAnimation() {
         indefiniteAnimatedView.stopAnimating()
         indefiniteAnimatedView.removeFromSuperview()
+    }
+    
+    func cancelImageAnimation() {
+        imageAnimatedView.stopAnimating()
     }
 }
 
@@ -818,18 +818,6 @@ public extension LRHUD {
     static func set(shouldTintImages: Bool) {
         sharedView.shouldTintImages = shouldTintImages
     }
-    
-    static func set(infoImage: UIImage) {
-        sharedView.infoImage = infoImage
-    }
-    
-    static func set(successImage: UIImage) {
-        sharedView.successImage = successImage
-    }
-    
-    static func set(errorImage: UIImage) {
-        sharedView.errorImage = errorImage
-    }
 
     static func set(graceTimeInterval: TimeInterval) {
         sharedView.graceTimeInterval = graceTimeInterval
@@ -882,17 +870,17 @@ public extension LRHUD {
     }
 
     static func show(info: String, interaction: Bool = true, maskType: MaskType? = nil) {
-        show(image: sharedView.infoImage, status: info, interaction: interaction, maskType: maskType)
+        show(image: sharedView.imageAnimatedView.image(forType: .info), status: info, interaction: interaction, maskType: maskType)
         sharedView.hapticGenerator?.notificationOccurred(.warning)
     }
 
     static func show(success: String, interaction: Bool = true, maskType: MaskType? = nil) {
-        show(image: sharedView.successImage, status: success, interaction: interaction, maskType: maskType)
+        show(image: sharedView.imageAnimatedView.image(forType: .success), status: success, interaction: interaction, maskType: maskType)
         sharedView.hapticGenerator?.notificationOccurred(.success)
     }
 
     static func show(error: String, interaction: Bool = true, maskType: MaskType? = nil) {
-        show(image: sharedView.errorImage, status: error, interaction: interaction, maskType: maskType)
+        show(image: sharedView.imageAnimatedView.image(forType: .error), status: error, interaction: interaction, maskType: maskType)
         sharedView.hapticGenerator?.notificationOccurred(.error)
     }
 
@@ -938,13 +926,13 @@ public protocol ProgressAnimated where Self: UIView {
 public protocol ImageAnimated where Self: UIView {
     var image: UIImage? {set get}
     
+    func image(forType: LRHUD.ImageType) -> UIImage
+    
     func setup()
     
     func startAnimating()
 
     func stopAnimating()
-    
-    func set(imageType: LRHUD.ImageType)
 }
 
 //MARK: -
