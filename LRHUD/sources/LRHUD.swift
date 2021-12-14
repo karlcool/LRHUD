@@ -47,8 +47,9 @@ public class LRHUD: UIView {
     
     private static var allWindows: [UIWindow] {
         if #available(iOS 13.0, *) {
-            let scene = UIApplication.shared.connectedScenes.first { $0.activationState == .foregroundActive }
-            return (scene as? UIWindowScene)?.windows ?? []
+//            UIApplication.shared.connectedScenes.map { ($0 as? UIWindowScene)?.windows ?? [] }
+//            let scene = UIApplication.shared.connectedScenes.first { $0.activationState == .foregroundActive }
+            return UIApplication.shared.connectedScenes.flatMap { ($0 as? UIWindowScene)?.windows ?? [] }
         } else {
             return UIApplication.shared.windows
         }
@@ -153,10 +154,7 @@ public class LRHUD: UIView {
         return result
     }()
     
-    private lazy var _imageView: UIImageView = {
-        let temp = UIImageView()
-        return temp
-    }()
+    private lazy var _imageView = UIImageView()
     
     private var _indefiniteAnimatedView: UIView?
     
@@ -455,6 +453,7 @@ extension LRHUD {
             cancelRingLayerAnimation()
             hudView.contentView.addSubview(indefiniteAnimatedView)
 //            indefiniteAnimatedView.star
+//            indefiniteAnimatedView.
             activityCount += 1
         }
 
@@ -703,8 +702,8 @@ private extension LRHUD {
     var imageView: UIImageView {
         if _imageView.superview == nil {
             hudView.contentView.addSubview(_imageView)
+            _imageView.frame = .init(origin: .zero, size: imageViewSize)
         }
-        _imageView.frame = .init(origin: .zero, size: imageViewSize)
         return _imageView
     }
 }
@@ -793,6 +792,7 @@ private extension LRHUD {
 //MARK: - Setters
 private extension LRHUD {
     var foregroundColorForStyle: UIColor {
+        return .red
         if defaultStyle == .light {
             return .black
         } else if defaultStyle == .dark {

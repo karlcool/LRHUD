@@ -14,7 +14,7 @@ class IndefiniteAnimatedView: UIView {
         }
     }
     
-    var strokeThickness: CGFloat = 0 {
+    var strokeThickness: CGFloat = 2 {
         didSet {
             indefiniteAnimatedLayer.lineWidth = strokeThickness
         }
