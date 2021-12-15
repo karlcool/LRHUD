@@ -25,10 +25,10 @@ class ViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-//        LRHUD.show(interaction: false)
+        LRHUD.show(interaction: false)
 //        LRHUD.show(progress: 0.2, status: "加载中")
 //        LRHUD.show(info: "这是info的内容，很长")
-        LRHUD.show(success: "这是info的内容，很长这是info的内容，很长")
+//        LRHUD.show(success: "这是info的内容，很长这是info的内容，很长")
 //        LRHUD.show(image: .add, status: "这是add")
     }
 

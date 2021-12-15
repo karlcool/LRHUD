@@ -92,7 +92,11 @@ open class IndefiniteAnimatedView: UIView, IndefiniteAnimated {
         _indefiniteAnimatedLayer!.path = smoothedPath.cgPath
 
         let maskLayer = CAGradientLayer()
-        maskLayer.type = .conic
+        if #available(iOS 12.0, *) {
+            maskLayer.type = .conic
+        } else {
+            maskLayer.type = .axial
+        }
         maskLayer.colors = [UIColor.black.withAlphaComponent(0).cgColor, UIColor.black.cgColor]
         maskLayer.startPoint = CGPoint(x: 0.5, y: 0.5)
         maskLayer.endPoint = CGPoint(x: 0.5, y: 0)
