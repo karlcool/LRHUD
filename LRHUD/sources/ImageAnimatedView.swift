@@ -22,6 +22,8 @@ open class ImageAnimatedView: UIImageView, ImageAnimated {
     
     private(set) var lineWidth: CGFloat = 1
 
+    private lazy var animationLayers = [CALayer]()
+    
     //MARK: - ImageAnimated
     override open func startAnimating() {
         guard let _style = style else {
@@ -36,7 +38,14 @@ open class ImageAnimatedView: UIImageView, ImageAnimated {
             animatedIconError(self)
         default: break
         }
-        
+    }
+    
+    open override func stopAnimating() {
+        for layer in animationLayers {
+            layer.removeAllAnimations()
+            layer.removeFromSuperlayer()
+        }
+        animationLayers.removeAll()
     }
     
     open func setup() {}
@@ -44,7 +53,15 @@ open class ImageAnimatedView: UIImageView, ImageAnimated {
     open func set(image: UIImage) {}
     
     open func set(color: UIColor) {
+        guard lineColor != color else {
+            return
+        }
         lineColor = color
+        guard animationLayers.count > 0 else {
+            return
+        }
+        stopAnimating()
+        startAnimating()
     }
     
     open func set(radius: CGFloat) {}
@@ -92,6 +109,7 @@ extension ImageAnimatedView {
 
             layer.add(animation, forKey: "animation")
             view.layer.addSublayer(layer)
+            animationLayers.append(layer)
         }
     }
     
@@ -123,6 +141,7 @@ extension ImageAnimatedView {
 
         layer.add(animation, forKey: "animation")
         view.layer.addSublayer(layer)
+        animationLayers.append(layer)
     }
     
     func animatedIconError(_ view: UIView) {
@@ -159,6 +178,7 @@ extension ImageAnimatedView {
 
             layer.add(animation, forKey: "animation")
             view.layer.addSublayer(layer)
+            animationLayers.append(layer)
         }
     }
 }

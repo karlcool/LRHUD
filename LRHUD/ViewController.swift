@@ -11,7 +11,7 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        LRHUD.set(minimumDismissTimeInterval: 20)
+        LRHUD.set(minimumDismissTimeInterval: 50)
         LRHUD.set(maximumDismissTimeInterval: 60)
 //        LRHUD.set(style: .dark)
 //        LRHUD.set(hudForegroundColor: .white)
@@ -27,8 +27,8 @@ class ViewController: UIViewController {
         super.viewWillAppear(animated)
 //        LRHUD.show(interaction: false)
 //        LRHUD.show(progress: 0.2, status: "加载中")
-        LRHUD.show(info: "这是info的内容，很长")
-//        LRHUD.show(success: "这是info的内容，很长这是info的内容，很长")
+//        LRHUD.show(info: "这是info的内容，很长")
+        LRHUD.show(success: "这是info的内容，很长这是info的内容，很长")
 //        LRHUD.show(image: .add, status: "这是add")
     }
 
@@ -36,7 +36,8 @@ class ViewController: UIViewController {
         if LRHUD.isVisible {
             LRHUD.dismiss()
         } else {
-            LRHUD.show(interaction: true)
+//            LRHUD.show(interaction: true)
+            LRHUD.show(info: "这是info的内容，很长")
         }
     }
 }
