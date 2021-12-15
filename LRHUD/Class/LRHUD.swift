@@ -118,7 +118,13 @@ public class LRHUD: UIControl {
     
     private var activityCount: UInt = 0
     
-    static let sharedView: LRHUD = .init()
+    static let sharedView: LRHUD = {
+        if Thread.isMainThread {
+            return LRHUD()
+        } else {
+            return DispatchQueue.main.sync { LRHUD() }
+        }
+    }()
     
     //MARK: - Instance Methods
     private init() {
@@ -156,9 +162,11 @@ public class LRHUD: UIControl {
     }
     
     func set(status: String) {
-        statusLabel.text = status
-        statusLabel.isHidden = status.count == 0
-        updateHUDFrame()
+        DispatchQueue.main.async { [weak self] in
+            self?.statusLabel.text = status
+            self?.statusLabel.isHidden = status.count == 0
+            self?.updateHUDFrame()
+        }
     }
     
     func updateHUDFrame() {
