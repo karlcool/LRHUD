@@ -16,6 +16,7 @@
 		2C030D30276303EC00F703F5 /* IndefiniteAnimatedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C030D2F276303EC00F703F5 /* IndefiniteAnimatedView.swift */; };
 		2C030D322763254E00F703F5 /* LRHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C030D312763254E00F703F5 /* LRHUD.swift */; };
 		2C7A66972768754D00E4DC59 /* ImageAnimatedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C7A66962768754D00E4DC59 /* ImageAnimatedView.swift */; };
+		2C7A669927689FAC00E4DC59 /* UIView+LRHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C7A669827689FAC00E4DC59 /* UIView+LRHUD.swift */; };
 		2CD9B2F02767215000E00CC6 /* ProgressAnimatedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CD9B2EF2767215000E00CC6 /* ProgressAnimatedView.swift */; };
 /* End PBXBuildFile section */
 
@@ -32,6 +33,7 @@
 		2C030D2F276303EC00F703F5 /* IndefiniteAnimatedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndefiniteAnimatedView.swift; sourceTree = "<group>"; };
 		2C030D312763254E00F703F5 /* LRHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LRHUD.swift; sourceTree = "<group>"; };
 		2C7A66962768754D00E4DC59 /* ImageAnimatedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageAnimatedView.swift; sourceTree = "<group>"; };
+		2C7A669827689FAC00E4DC59 /* UIView+LRHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+LRHUD.swift"; sourceTree = "<group>"; };
 		2CD9B2EF2767215000E00CC6 /* ProgressAnimatedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressAnimatedView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -81,10 +83,11 @@
 		2C030D2E276303A600F703F5 /* sources */ = {
 			isa = PBXGroup;
 			children = (
+				2C030D312763254E00F703F5 /* LRHUD.swift */,
 				2C030D2F276303EC00F703F5 /* IndefiniteAnimatedView.swift */,
 				2CD9B2EF2767215000E00CC6 /* ProgressAnimatedView.swift */,
 				2C7A66962768754D00E4DC59 /* ImageAnimatedView.swift */,
-				2C030D312763254E00F703F5 /* LRHUD.swift */,
+				2C7A669827689FAC00E4DC59 /* UIView+LRHUD.swift */,
 			);
 			path = sources;
 			sourceTree = "<group>";
@@ -160,6 +163,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2C7A669927689FAC00E4DC59 /* UIView+LRHUD.swift in Sources */,
 				2CD9B2F02767215000E00CC6 /* ProgressAnimatedView.swift in Sources */,
 				2C030D30276303EC00F703F5 /* IndefiniteAnimatedView.swift in Sources */,
 				2C030D1E2763036200F703F5 /* ViewController.swift in Sources */,

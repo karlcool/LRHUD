@@ -7,12 +7,12 @@
 
 import UIKit
 
-class ProgressAnimatedView: UIView {
+open class ProgressAnimatedView: UIView, ProgressAnimated {
     private lazy var backgroundView = RingView()
     
     private lazy var progressView = RingView()
     
-    override var frame: CGRect {
+    override open var frame: CGRect {
         didSet {
             guard !frame.equalTo(oldValue) else {
                 return
@@ -24,7 +24,7 @@ class ProgressAnimatedView: UIView {
         }
     }
     
-    override func willMove(toSuperview newSuperview: UIView?) {
+    override open func willMove(toSuperview newSuperview: UIView?) {
         if newSuperview != nil {
             layoutAnimatedLayer()
         } else {
@@ -33,7 +33,7 @@ class ProgressAnimatedView: UIView {
         }
     }
     
-    override func sizeThatFits(_ size: CGSize) -> CGSize {
+    override open func sizeThatFits(_ size: CGSize) -> CGSize {
         _ = progressView.sizeThatFits(size)
         return backgroundView.sizeThatFits(size)
     }
@@ -45,28 +45,27 @@ class ProgressAnimatedView: UIView {
         backgroundView.layoutAnimatedLayer()
         progressView.layoutAnimatedLayer()
     }
-}
-
-extension ProgressAnimatedView: ProgressAnimated {
-    func setup() {
+    
+    //MARK: - ProgressAnimated
+    open func setup() {
         
     }
     
-    func set(progress: CGFloat) {
+    open func set(progress: CGFloat) {
         progressView.strokeEnd = progress
     }
     
-    func set(color: UIColor) {
+    open func set(color: UIColor) {
         progressView.strokeColor = color
         backgroundView.strokeColor = color.withAlphaComponent(0.1)
     }
     
-    func set(radius: CGFloat) {
+    open func set(radius: CGFloat) {
         progressView.radius = radius
         backgroundView.radius = radius
     }
     
-    func set(thickness: CGFloat) {
+    open func set(thickness: CGFloat) {
         progressView.strokeThickness = thickness
         backgroundView.strokeThickness = thickness
     }

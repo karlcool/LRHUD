@@ -11,29 +11,25 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        LRHUD.set(minimumDismissTimeInterval: 20)
+        LRHUD.set(minimumDismissTimeInterval: 2)
         LRHUD.set(maximumDismissTimeInterval: 60)
         LRHUD.set(style: .dark)
         LRHUD.set(hudForegroundColor: .white)
         LRHUD.set(hudBackgroundColor: .hex(0x162926, alpha: 0.77))
         LRHUD.set(cornerRadius: 8)
-        LRHUD.set(shouldTintImages: true)
         LRHUD.set(font: .systemFont(ofSize: 14))
-//        LRHUD.set(minimumSize: .init(width: 60, height: 60))
+//        LRHUD.register(imageAnimatedViewClass: LRImageView.self)
 //        LRHUD.register(indefiniteAnimatedViewClass: UIActivityIndicatorView.self)
 //        LRHUD.set(maskStyle: .gradient)
-        print("!")
-        view.backgroundColor = .gray
-//        LRHUD.sharedView.re
-//        UITableView().register(<#T##cellClass: AnyClass?##AnyClass?#>, forCellReuseIdentifier: <#T##String#>)
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        LRHUD.show(interaction: false)
+//        LRHUD.show(interaction: false)
 //        LRHUD.show(progress: 0.2, status: "加载中")
 //        LRHUD.show(info: "这是info的内容，很长")
-//        LRHUD.show(success: "这是info的内容，很长这是info的内容，很长")
+        LRHUD.show(success: "这是info的内容，很长这是info的内容，很长")
+//        LRHUD.show(image: .add, status: "这是add")
     }
 
     @IBAction func click(_ sender: Any) {

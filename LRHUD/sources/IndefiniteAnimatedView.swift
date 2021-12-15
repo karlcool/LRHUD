@@ -7,7 +7,7 @@
 
 import UIKit
 
-class IndefiniteAnimatedView: UIView {
+open class IndefiniteAnimatedView: UIView, IndefiniteAnimated {
     var strokeColor: UIColor = .clear {
         didSet {
             indefiniteAnimatedLayer.strokeColor = strokeColor.cgColor
@@ -35,7 +35,7 @@ class IndefiniteAnimatedView: UIView {
         }
     }
     
-    override var frame: CGRect {
+    override open var frame: CGRect {
         didSet {
             guard !frame.equalTo(oldValue) else {
                 return
@@ -54,7 +54,7 @@ class IndefiniteAnimatedView: UIView {
     
     private var _indefiniteAnimatedLayer: CAShapeLayer?
     
-    override func willMove(toSuperview newSuperview: UIView?) {
+    override open func willMove(toSuperview newSuperview: UIView?) {
         if newSuperview != nil {
             layoutAnimatedLayer()
         } else {
@@ -63,7 +63,7 @@ class IndefiniteAnimatedView: UIView {
         }
     }
     
-    override func sizeThatFits(_ size: CGSize) -> CGSize {
+    override open func sizeThatFits(_ size: CGSize) -> CGSize {
         return .init(width: (radius + strokeThickness / 2 + 5) * 2, height: (radius + strokeThickness / 2 + 5) * 2)
     }
     
@@ -129,30 +129,29 @@ class IndefiniteAnimatedView: UIView {
         animationGroup.animations = [strokeStartAnimation, strokeEndAnimation]
         _indefiniteAnimatedLayer!.mask?.add(animationGroup, forKey: "progress")
     }
-}
-
-extension IndefiniteAnimatedView: IndefiniteAnimated {
-    func setup() {
+    
+    //MARK: - IndefiniteAnimated
+    public func setup() {
         
     }
     
-    func startAnimating() {
+    public func startAnimating() {
         
     }
     
-    func stopAnimating() {
+    public func stopAnimating() {
         
     }
     
-    func set(color: UIColor) {
+    public func set(color: UIColor) {
         strokeColor = color
     }
     
-    func set(radius: CGFloat) {
+    public func set(radius: CGFloat) {
         self.radius = radius
     }
     
-    func set(thickness: CGFloat) {
+    public func set(thickness: CGFloat) {
         strokeThickness = thickness
     }
 }

@@ -20,7 +20,7 @@ public class LRHUD: UIControl {
     
     static let didAppear = Notification.Name(rawValue: "LRHUD.didAppear")
     
-    public static var isVisible: Bool { sharedView.alpha > 0 }
+    static var isVisible: Bool { sharedView.alpha > 0 }
     
     static let parallaxDepthPoints: CGFloat = 10
     
@@ -73,16 +73,14 @@ public class LRHUD: UIControl {
     var offsetFromCenter: UIOffset = .init(horizontal: 0, vertical: 0)
     
     var maxSupportedWindowLevel: UIWindow.Level = .normal
-    
-    var shouldTintImages = true
 
     var hapticsEnabled = false
 
-    private var indefiniteAnimatedViewClass: IndefiniteAnimated.Type = IndefiniteAnimatedView.self
+    private(set) var indefiniteAnimatedViewClass: IndefiniteAnimated.Type = IndefiniteAnimatedView.self
 
-    private var progressAnimatedViewClass: ProgressAnimated.Type = ProgressAnimatedView.self
+    private(set) var progressAnimatedViewClass: ProgressAnimated.Type = ProgressAnimatedView.self
     
-    private var imageAnimatedViewClass: ImageAnimated.Type = ImageAnimatedView.self
+    private(set) var imageAnimatedViewClass: ImageAnimated.Type = ImageAnimatedView.self
     
     private var graceItem: DispatchWorkItem?
     
@@ -165,7 +163,7 @@ public class LRHUD: UIControl {
     
     func updateHUDFrame() {
         let progressUsed = imageAnimatedView.isHidden
-        let imageUsed = !progressUsed && imageAnimatedView.image != nil
+        let imageUsed = !progressUsed && imageAnimatedView.style != nil
         
         var labelRect: CGRect = .zero
         var labelHeight: CGFloat = 0
@@ -370,11 +368,11 @@ extension LRHUD {
             self?._show(progress: progress, status: status)
         }
     }
-    
-    func show(image: UIImage, status: String?, duration: TimeInterval, interaction: Bool = true) {
+
+    func show(imageStyle: ImageStyle, status: String?, duration: TimeInterval, interaction: Bool = true) {
         OperationQueue.main.addOperation { [weak self] in
             self?.isUserInteractionEnabled = interaction
-            self?._show(image: image, status: status, duration: duration)
+            self?._show(imageStyle: imageStyle, status: status, duration: duration)
         }
     }
     
@@ -395,7 +393,7 @@ extension LRHUD {
         
         updateViewHierarchy()
         imageAnimatedView.isHidden = true
-        imageAnimatedView.image = nil
+        imageAnimatedView.style = nil
         
         statusLabel.isHidden = status?.count == 0
         statusLabel.text = status
@@ -431,7 +429,7 @@ extension LRHUD {
         hapticGenerator?.prepare()
     }
     
-    func _show(image: UIImage, status: String?, duration: TimeInterval) {
+    func _show(imageStyle: ImageStyle, status: String?, duration: TimeInterval) {
         fadeOutItem?.cancel()
         fadeOutItem = nil
         graceItem?.cancel()
@@ -442,13 +440,8 @@ extension LRHUD {
         progress = LRHUD.undefinedProgress
         cancelProgressAnimation()
         cancelIndefiniteAnimation()
-        if shouldTintImages {
-            if image.renderingMode != .alwaysTemplate {
-                imageAnimatedView.image = image.withRenderingMode(.alwaysTemplate)
-            }
-        } else {
-            imageAnimatedView.image = image
-        }
+        
+        imageAnimatedView.style = imageStyle
         imageAnimatedView.isHidden = false
         imageAnimatedView.startAnimating()
         statusLabel.isHidden = status?.count == 0
@@ -536,7 +529,7 @@ extension LRHUD {
 }
 
 //MARK: - Custom UI
-private extension LRHUD {
+extension LRHUD {
     var indefiniteAnimatedView: IndefiniteAnimated {
         if _indefiniteAnimatedView == nil || !(_indefiniteAnimatedView?.isKind(of: indefiniteAnimatedViewClass) ?? false) {
             _indefiniteAnimatedView?.removeFromSuperview()
@@ -570,7 +563,9 @@ private extension LRHUD {
             _imageAnimatedView!.setup()
             hudView.contentView.addSubview(_imageAnimatedView!)
         }
-        _imageAnimatedView!.tintColor = foregroundColorForStyle
+        _imageAnimatedView!.set(color: foregroundColorForStyle)
+        _imageAnimatedView!.set(thickness: ringThickness)
+        _imageAnimatedView!.set(radius: statusLabel.text != nil ? ringRadius : ringNoTextRadius)
         return _imageAnimatedView!
     }
     
@@ -852,10 +847,6 @@ public extension LRHUD {
     static func set(imageViewSize: CGSize) {
         sharedView.imageViewSize = imageViewSize
     }
-    
-    static func set(shouldTintImages: Bool) {
-        sharedView.shouldTintImages = shouldTintImages
-    }
 
     static func set(graceTimeInterval: TimeInterval) {
         sharedView.graceTimeInterval = graceTimeInterval
@@ -905,21 +896,25 @@ public extension LRHUD {
     }
 
     static func show(image: UIImage, status: String, interaction: Bool = true) {
-        sharedView.show(image: image, status: status, duration: displayDuration(for: status), interaction: interaction)
+        show(imageStyle: .image(image), status: status, interaction: interaction)
+    }
+    
+    static func show(imageStyle: LRHUD.ImageStyle, status: String, interaction: Bool = true) {
+        sharedView.show(imageStyle: imageStyle, status: status, duration: displayDuration(for: status), interaction: interaction)
     }
     
     static func show(info: String, interaction: Bool = true) {
-        show(image: sharedView.imageAnimatedView.image(forType: .info), status: info, interaction: interaction)
+        show(imageStyle: .info, status: info, interaction: interaction)
         sharedView.hapticGenerator?.notificationOccurred(.warning)
     }
 
     static func show(success: String, interaction: Bool = true) {
-        show(image: sharedView.imageAnimatedView.image(forType: .success), status: success, interaction: interaction)
+        show(imageStyle: .success, status: success, interaction: interaction)
         sharedView.hapticGenerator?.notificationOccurred(.success)
     }
 
     static func show(error: String, interaction: Bool = true) {
-        show(image: sharedView.imageAnimatedView.image(forType: .error), status: error, interaction: interaction)
+        show(imageStyle: .error, status: error, interaction: interaction)
         sharedView.hapticGenerator?.notificationOccurred(.error)
     }
 
@@ -956,15 +951,19 @@ public protocol ProgressAnimated where Self: UIView {
 }
 
 public protocol ImageAnimated where Self: UIView {
-    var image: UIImage? {set get}
-    
-    func image(forType: LRHUD.ImageType) -> UIImage
+    var style: LRHUD.ImageStyle? { get set }
     
     func setup()
     
     func startAnimating()
 
     func stopAnimating()
+
+    func set(color: UIColor)
+    
+    func set(radius: CGFloat)
+    
+    func set(thickness: CGFloat)
 }
 
 //MARK: -
@@ -983,10 +982,11 @@ public extension LRHUD {
         case custom
     }
     
-    enum ImageType {
+    enum ImageStyle {
         case info
         case error
         case success
+        case image(UIImage)
         case named(String)
     }
 }
@@ -997,24 +997,6 @@ private extension DispatchWorkItem {
         DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(Int(timeInterval * 1000)), execute: result)
         return result
     }
-}
-
-extension UIActivityIndicatorView: IndefiniteAnimated {
-    public func setup() {
-        if #available(iOS 13.0, *) {
-            style = .large
-        } else {
-            style = .gray
-        }
-    }
-    
-    public func set(color: UIColor) {
-        self.color = color
-    }
-    
-    public func set(radius: CGFloat) {}
-    
-    public func set(thickness: CGFloat) {}
 }
 
 private class RadialGradientLayer: CALayer {
