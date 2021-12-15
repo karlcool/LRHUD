@@ -1,6 +1,6 @@
 # LRHUD
 
-`LRHUD` 是老牌项目SVProgressHUD的纯swift完整实现。但是编写过程中灵感迸发，所以进行了一系列的改写。
+`LRHUD` 是老牌项目[SVProgressHUD](https://github.com/SVProgressHUD/SVProgressHUD)的纯swift完整实现。但是编写过程中有了新点子，所以进行了一系列的改写。
 主要改进如下:
 
 1.主要样式可以通过协议实现深度定制
