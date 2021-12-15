@@ -361,6 +361,7 @@ private extension LRHUD {
 }
 
 //MARK: - async show/dismiss
+@available(iOS 15.0.0, *)
 public extension LRHUD {
     func show(progress: Float, status: String?, interaction: Bool = true) async {
         await MainActor.run { [weak self] in
@@ -921,6 +922,7 @@ public extension LRHUD {
 }
 
 //MARK: - async show/dismiss
+@available(iOS 15.0.0, *)
 public extension LRHUD {
     static func show(status: String? = nil, interaction: Bool = true) async {
         await show(progress: LRHUD.undefinedProgress, status: status, interaction: interaction)

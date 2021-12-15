@@ -36,31 +36,6 @@ class ViewController: UIViewController {
         LRHUD.set(minimumDismissTimeInterval: 3)
         LRHUD.set(maximumDismissTimeInterval: 60)
     }
-
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-//        LRHUD.show(interaction: false)
-//        LRHUD.show(progress: 0.2, status: "加载中")
-//        LRHUD.show(info: "这是info的内容，很长")
-//        LRHUD.show(success: "这是info的内容，很长这是info的内容，很长")
-//        LRHUD.show(image: .add, status: "这是add")
-        
-    }
-
-    @IBAction func click(_ sender: Any) {
-        Task {
-            await LRHUD.show(status: "loading")
-            await Task.sleep(1000000000 * 10)
-            await LRHUD.dismiss()
-        }
-        return
-        if LRHUD.isVisible {
-            LRHUD.dismiss()
-        } else {
-//            LRHUD.show(interaction: true)
-            LRHUD.show(info: "这是info的内容，很长")
-        }
-    }
 }
 
 extension ViewController: UITableViewDataSource, UITableViewDelegate {
@@ -114,14 +89,3 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
         }
     }
 }
-let ddd = ["show",
-              "show with status",
-              "show progress",
-              "show progress with status",
-              "show info with animation",
-              "show success with animation",
-              "show error with animation",
-              "show info with image",
-              "show success with image",
-              "show error with image",
-              "show with mask"]

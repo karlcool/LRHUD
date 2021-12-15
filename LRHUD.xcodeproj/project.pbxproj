@@ -71,7 +71,7 @@
 				2C030D192763036200F703F5 /* AppDelegate.swift */,
 				2C030D1B2763036200F703F5 /* SceneDelegate.swift */,
 				2C030D1D2763036200F703F5 /* ViewController.swift */,
-				2C030D2E276303A600F703F5 /* sources */,
+				2C030D2E276303A600F703F5 /* Class */,
 				2C030D1F2763036200F703F5 /* Main.storyboard */,
 				2C030D222763036300F703F5 /* Assets.xcassets */,
 				2C030D242763036300F703F5 /* LaunchScreen.storyboard */,
@@ -80,7 +80,7 @@
 			path = LRHUD;
 			sourceTree = "<group>";
 		};
-		2C030D2E276303A600F703F5 /* sources */ = {
+		2C030D2E276303A600F703F5 /* Class */ = {
 			isa = PBXGroup;
 			children = (
 				2C030D312763254E00F703F5 /* LRHUD.swift */,
@@ -89,7 +89,7 @@
 				2C7A66962768754D00E4DC59 /* ImageAnimatedView.swift */,
 				2C7A669827689FAC00E4DC59 /* UIView+LRHUD.swift */,
 			);
-			path = sources;
+			path = Class;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
