@@ -11,11 +11,11 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        LRHUD.set(minimumDismissTimeInterval: 2)
+        LRHUD.set(minimumDismissTimeInterval: 20)
         LRHUD.set(maximumDismissTimeInterval: 60)
-        LRHUD.set(style: .dark)
-        LRHUD.set(hudForegroundColor: .white)
-        LRHUD.set(hudBackgroundColor: .hex(0x162926, alpha: 0.77))
+//        LRHUD.set(style: .dark)
+//        LRHUD.set(hudForegroundColor: .white)
+//        LRHUD.set(hudBackgroundColor: .hex(0x162926, alpha: 0.77))
         LRHUD.set(cornerRadius: 8)
         LRHUD.set(font: .systemFont(ofSize: 14))
 //        LRHUD.register(imageAnimatedViewClass: LRImageView.self)
@@ -27,8 +27,8 @@ class ViewController: UIViewController {
         super.viewWillAppear(animated)
 //        LRHUD.show(interaction: false)
 //        LRHUD.show(progress: 0.2, status: "加载中")
-//        LRHUD.show(info: "这是info的内容，很长")
-        LRHUD.show(success: "这是info的内容，很长这是info的内容，很长")
+        LRHUD.show(info: "这是info的内容，很长")
+//        LRHUD.show(success: "这是info的内容，很长这是info的内容，很长")
 //        LRHUD.show(image: .add, status: "这是add")
     }
 

@@ -46,12 +46,13 @@ open class LRImageView: UIImageView, ImageAnimated {
         }
     }
     
-    var infoImage: UIImage = (UIImage(systemName: "exclamationmark.circle") ?? UIImage()).withRenderingMode(.alwaysTemplate)
+    lazy var infoImage: UIImage = (UIImage(systemName: "exclamationmark.circle") ?? UIImage()).withRenderingMode(.alwaysTemplate)
     
-    var successImage: UIImage = (UIImage(systemName: "checkmark") ?? UIImage()).withRenderingMode(.alwaysTemplate)
+    lazy var successImage: UIImage = (UIImage(systemName: "checkmark") ?? UIImage()).withRenderingMode(.alwaysTemplate)
     
-    var errorImage: UIImage = (UIImage(systemName: "multiply") ?? UIImage()).withRenderingMode(.alwaysTemplate)
-
+    lazy var errorImage: UIImage = (UIImage(systemName: "multiply") ?? UIImage()).withRenderingMode(.alwaysTemplate)
+    
+    //MARK: - ImageAnimated
     open func setup() {}
 
     open func set(color: UIColor) {
