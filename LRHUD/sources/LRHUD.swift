@@ -434,15 +434,13 @@ private extension LRHUD {
         statusLabel.text = status
         self.progress = progress
         
+        cancelImageAnimation()
         if progress >= 0 {
             cancelIndefiniteAnimation()
             if progressAnimatedView.superview == nil {
                 hudView.contentView.addSubview(progressAnimatedView)
             }
-            CATransaction.begin()
-            CATransaction.setDisableActions(true)
             progressAnimatedView.set(progress: .init(progress))
-            CATransaction.commit()
             if progress == 0 {
                 activityCount += 1
             }
@@ -472,9 +470,11 @@ private extension LRHUD {
         
         updateViewHierarchy()
         
-        progress = LRHUD.undefinedProgress
         cancelProgressAnimation()
         cancelIndefiniteAnimation()
+        cancelImageAnimation()
+        
+        progress = LRHUD.undefinedProgress
         
         imageAnimatedView.style = imageStyle
         imageAnimatedView.isHidden = false
