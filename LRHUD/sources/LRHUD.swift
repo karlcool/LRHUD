@@ -360,8 +360,41 @@ private extension LRHUD {
     }
 }
 
-//MARK: - Master show/dismiss methods
-extension LRHUD {
+//MARK: - async show/dismiss
+public extension LRHUD {
+    func show(progress: Float, status: String?, interaction: Bool = true) async {
+        await MainActor.run { [weak self] in
+            self?.isUserInteractionEnabled = interaction
+            self?._show(progress: progress, status: status)
+        }
+    }
+
+    func show(imageStyle: ImageStyle, status: String?, duration: TimeInterval, interaction: Bool = true) async {
+        await MainActor.run { [weak self] in
+            self?.isUserInteractionEnabled = interaction
+            self?._show(imageStyle: imageStyle, status: status, duration: duration)
+        }
+    }
+    
+    func dismiss(delay: TimeInterval = 0) async {
+        await MainActor.run { [weak self] in
+            self?._dismiss(delay: delay)
+        }
+    }
+    
+    func dismissWaitCompletion(delay: TimeInterval = 0) async {
+        await withCheckedContinuation({ con in
+            DispatchQueue.main.async { [weak self] in
+                self?._dismiss(delay: delay) {
+                    con.resume()
+                } ?? con.resume()
+            }
+        })
+    }
+}
+
+//MARK: - show/dismiss
+public extension LRHUD {
     func show(progress: Float, status: String?, interaction: Bool = true) {
         OperationQueue.main.addOperation { [weak self] in
             self?.isUserInteractionEnabled = interaction
@@ -381,8 +414,10 @@ extension LRHUD {
             self?._dismiss(delay: delay, completion: completion)
         }
     }
-    
-    private func _show(progress: Float, status: String?) {
+}
+
+private extension LRHUD {
+    func _show(progress: Float, status: String?) {
         if fadeOutItem != nil {
             activityCount = 0
         }
@@ -456,7 +491,7 @@ extension LRHUD {
         }
     }
     
-    private func _dismiss(delay: TimeInterval = 0, completion: (() -> Void)? = nil) {
+    func _dismiss(delay: TimeInterval = 0, completion: (() -> Void)? = nil) {
         graceItem?.cancel()
         graceItem = nil
         NotificationCenter.default.post(name: LRHUD.willDisappear, object: nil, userInfo: notificationUserInfo())
@@ -885,7 +920,49 @@ public extension LRHUD {
     }
 }
 
-//MARK: - Show/Dismiss
+//MARK: - async show/dismiss
+public extension LRHUD {
+    static func show(status: String? = nil, interaction: Bool = true) async {
+        await show(progress: LRHUD.undefinedProgress, status: status, interaction: interaction)
+    }
+
+    static func show(progress: Float, status: String? = nil, interaction: Bool = true) async {
+        await sharedView.show(progress: progress, status: status, interaction: interaction)
+    }
+
+    static func show(image: UIImage, status: String, interaction: Bool = false) async {
+        await show(imageStyle: .image(image), status: status, interaction: interaction)
+    }
+    
+    static func show(imageStyle: LRHUD.ImageStyle, status: String, interaction: Bool = false) async {
+        await sharedView.show(imageStyle: imageStyle, status: status, duration: displayDuration(for: status), interaction: interaction)
+    }
+    
+    static func show(info: String, interaction: Bool = false) async {
+        await show(imageStyle: .info, status: info, interaction: interaction)
+        sharedView.hapticGenerator?.notificationOccurred(.warning)
+    }
+
+    static func show(success: String, interaction: Bool = false) async {
+        await show(imageStyle: .success, status: success, interaction: interaction)
+        sharedView.hapticGenerator?.notificationOccurred(.success)
+    }
+
+    static func show(error: String, interaction: Bool = false) async {
+        await show(imageStyle: .error, status: error, interaction: interaction)
+        sharedView.hapticGenerator?.notificationOccurred(.error)
+    }
+
+    static func dismiss(delay: TimeInterval = 0) async {
+        await sharedView.dismiss(delay: delay)
+    }
+    
+    static func dismissWaitCompletion(delay: TimeInterval = 0) async {
+        await sharedView.dismissWaitCompletion(delay: delay)
+    }
+}
+
+//MARK: - show/dismiss
 public extension LRHUD {
     static func show(status: String? = nil, interaction: Bool = true) {
         show(progress: LRHUD.undefinedProgress, status: status, interaction: interaction)
@@ -895,25 +972,25 @@ public extension LRHUD {
         sharedView.show(progress: progress, status: status, interaction: interaction)
     }
 
-    static func show(image: UIImage, status: String, interaction: Bool = true) {
+    static func show(image: UIImage, status: String, interaction: Bool = false) {
         show(imageStyle: .image(image), status: status, interaction: interaction)
     }
     
-    static func show(imageStyle: LRHUD.ImageStyle, status: String, interaction: Bool = true) {
+    static func show(imageStyle: LRHUD.ImageStyle, status: String, interaction: Bool = false) {
         sharedView.show(imageStyle: imageStyle, status: status, duration: displayDuration(for: status), interaction: interaction)
     }
     
-    static func show(info: String, interaction: Bool = true) {
+    static func show(info: String, interaction: Bool = false) {
         show(imageStyle: .info, status: info, interaction: interaction)
         sharedView.hapticGenerator?.notificationOccurred(.warning)
     }
 
-    static func show(success: String, interaction: Bool = true) {
+    static func show(success: String, interaction: Bool = false) {
         show(imageStyle: .success, status: success, interaction: interaction)
         sharedView.hapticGenerator?.notificationOccurred(.success)
     }
 
-    static func show(error: String, interaction: Bool = true) {
+    static func show(error: String, interaction: Bool = false) {
         show(imageStyle: .error, status: error, interaction: interaction)
         sharedView.hapticGenerator?.notificationOccurred(.error)
     }

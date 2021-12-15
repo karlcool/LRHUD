@@ -16,8 +16,8 @@ class ViewController: UIViewController {
 //        LRHUD.set(style: .dark)
 //        LRHUD.set(hudForegroundColor: .white)
 //        LRHUD.set(hudBackgroundColor: .hex(0x162926, alpha: 0.77))
-        LRHUD.set(cornerRadius: 8)
-        LRHUD.set(font: .systemFont(ofSize: 14))
+//        LRHUD.set(cornerRadius: 8)
+//        LRHUD.set(font: .systemFont(ofSize: 14))
 //        LRHUD.register(imageAnimatedViewClass: LRImageView.self)
 //        LRHUD.register(indefiniteAnimatedViewClass: UIActivityIndicatorView.self)
 //        LRHUD.set(maskStyle: .gradient)
@@ -25,14 +25,21 @@ class ViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        LRHUD.show(interaction: false)
+//        LRHUD.show(interaction: false)
 //        LRHUD.show(progress: 0.2, status: "加载中")
 //        LRHUD.show(info: "这是info的内容，很长")
 //        LRHUD.show(success: "这是info的内容，很长这是info的内容，很长")
 //        LRHUD.show(image: .add, status: "这是add")
+        
     }
 
     @IBAction func click(_ sender: Any) {
+        Task {
+            await LRHUD.show(status: "loading")
+            await Task.sleep(1000000000 * 10)
+            await LRHUD.dismiss()
+        }
+        return
         if LRHUD.isVisible {
             LRHUD.dismiss()
         } else {
