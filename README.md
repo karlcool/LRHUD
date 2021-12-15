@@ -1,4 +1,3 @@
-````
 # LRHUD
 
 `LRHUD` 是老牌项目SVProgressHUD的纯swift完整实现。但是编写过程中灵感迸发，所以进行了一系列的改写。
@@ -84,6 +83,7 @@ static func register(progressAnimatedViewClass: ProgressAnimated.Type)
 
 ####实现此协议可以定制HUD的status样式
 内置了ImageAnimatedView和LRImageView
+
 ```swift
 public protocol ImageAnimated where Self: UIView 
 
@@ -172,5 +172,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-````
