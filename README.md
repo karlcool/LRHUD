@@ -2,8 +2,11 @@
 
 `LRHUD` 是老牌项目SVProgressHUD的纯swift完整实现。但是编写过程中灵感迸发，所以进行了一系列的改写。
 主要改进如下:
+
 1.主要样式可以通过协议实现深度定制
+
 2.支持swift异步编程
+
 3.去除原项目对切片的依赖，使项目更轻量化
 
 ## Demo		
@@ -64,9 +67,9 @@ await LRHUD.dismissWaitCompletion()
 
 ## 个性化定制
 
-###通过协议进行深度定制化
+### 通过协议进行深度定制化
 
-####实现此协议可以定制HUD的loading样式
+#### 实现此协议可以定制HUD的loading样式
 内置了IndefiniteAnimatedView和UIActivityIndicatorView
 ```swift
 public protocol IndefiniteAnimated where Self: UIView 
@@ -74,14 +77,14 @@ public protocol IndefiniteAnimated where Self: UIView
 static func register(indefiniteAnimatedViewClass: IndefiniteAnimated.Type)
 ```
 
-####实现此协议可以定制HUD的progress样式
+#### 实现此协议可以定制HUD的progress样式
 ```swift
 public protocol ProgressAnimated where Self: UIView 
 
 static func register(progressAnimatedViewClass: ProgressAnimated.Type)
 ```
 
-####实现此协议可以定制HUD的status样式
+#### 实现此协议可以定制HUD的status样式
 内置了ImageAnimatedView和LRImageView
 
 ```swift
@@ -90,7 +93,7 @@ public protocol ImageAnimated where Self: UIView
 static func register(imageAnimatedViewClass: ImageAnimated.Type)
 ```
 
-###设置属性实现简单定制化
+### 设置属性实现简单定制化
 ```swift
 static func set(status: String) 
 
