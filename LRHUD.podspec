@@ -1,7 +1,7 @@
 
 Pod::Spec.new do |s|
   s.name         = "LRHUD"
-  s.version      = "2.2.5"
+  s.version      = "2.2.6"
   s.summary      = "LRHUD"
   s.description  = "LRHUD"
   s.homepage     = "https://github.com/karlcool/LRHUD.git"

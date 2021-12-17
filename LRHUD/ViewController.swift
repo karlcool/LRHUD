@@ -44,11 +44,8 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        var config = UIListContentConfiguration.subtitleCell()
-        config.text = titles[indexPath.row]
-        
         let cell = tableView.dequeueReusableCell(withIdentifier: "UITableViewCell")!
-        cell.contentConfiguration = config
+        cell.textLabel?.text = titles[indexPath.row]
         return cell
     }
     
@@ -64,7 +61,7 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
             Task {
                 for i in 0 ... 10 {
                     await LRHUD.show(progress: Float(i) / 10, status: status)
-                    await Task.sleep(100000000)
+                    try await Task.sleep(nanoseconds: 100000000)
                 }
                 await LRHUD.show(success: "succeed")
             }
